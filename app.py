@@ -234,7 +234,7 @@ if wb is not None:
     
     # NUEVAS MATRICES PONDERADAS
     df_pond_costes = leer_tabla_excel(wb, "tblMatrizPonderadaCostes")
-    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValoroperativo")
+    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValorOperativo")
     df_tradeoff = leer_tabla_excel(wb, "tblMatrizTradeOff")
 
     # ==========================================
