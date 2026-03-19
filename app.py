@@ -69,7 +69,7 @@ st.markdown("""
 def get_base64_of_bin_file(bin_file):
     try:
         with open(bin_file, 'rb') as f: return base64.b64encode(f.read()).decode()
-    except FileNotFoundError: return None
+    except: return None
 
 assets_status = {
     "Combined Logo B64": get_base64_of_bin_file("Logo_uc3m_PSL.png"),
@@ -100,7 +100,7 @@ with col_profile:
         
         st.markdown("""
         <div style="text-align: center; margin-bottom: 15px;">
-            <a href="https://www.linkedin.com/in/marina-sarti-pineda-27211b29b/?originalSubdomain=es" target="_blank" style="text-decoration: none; font-size: 14px; color: #005691;">🔗 Perfil de LinkedIn</a>
+            <a href="https://www.linkedin.com/in/marina-sarti-pineda-27211b29b/" target="_blank" style="text-decoration: none; font-size: 14px; color: #005691;">🔗 Perfil de LinkedIn</a>
         </div>
         """, unsafe_allow_html=True)
         
@@ -177,15 +177,13 @@ with col_main:
     st.markdown("## 🎓 Sinopsis del Proyecto")
     with st.expander("Leer Sinopsis / Abstract Completo", expanded=True):
         tab_fr, tab_es, tab_en = st.tabs(["Français", "Español", "English"])
-        
         with tab_fr: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Le Financement du Terrorisme (FT) consiste en la collecte de fonds, ce qui englobe le processus de sollicitation, de rassemblement, de fourniture et de mise à disposition d'argent ou d'actifs dans le but de faciliter la capacité à mener des activités terroristes. En Espagne, la loi 10/2010 établit un cadre rigoureux contre la fourniture ou la distribution de fonds.<br><br>Les grands groupes organisés, les petites cellules et les acteurs individuels ont besoin d'argent pour développer leurs activités terroristes. La littérature académique s'accorde à dire que le manque de fonds limite considérablement leur capacité opérationnelle, le FT étant un élément structurant du terrorisme mondial.<br><br>Ce travail fonde son analyse sur des informations récentes, en utilisant des exemples représentatifs des dynamiques contemporaines. L'objectif principal est de construire une <strong>simulation d'un réseau de financement du terrorisme</strong> basée sur les preuves recueillies dans la littérature spécialisée (typologies du GAFI, ABE, etc.).<br><br>Une analyse structurelle est réalisée sur cette simulation à l'aide de l'Économie des Réseaux et de la Théorie des Jeux, incluant l'étude des métriques de centralité, l'importance des nœuds clés (points d'étranglement) et la résilience du système face aux interventions policières. Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.</div>""", unsafe_allow_html=True)
         with tab_es: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">La Financiación del Terrorismo (FT) consiste en la captación de fondos, lo cual abarca el proceso de solicitud, recaudación, provisión y puesta a disposición de dinero o activos con el fin de facilitar o potenciar la capacidad de cualquier persona u organización para llevar a cabo actividades relacionadas con el terrorismo. En el caso concreto de España, la Ley 10/2010 establece un marco riguroso frente al suministro, depósito o distribución de fondos.<br><br>Tanto los grandes grupos organizados como las pequeñas células e incluso los actores individuales necesitan dinero para el desarrollo de la actividad terrorista. La literatura académica y los informes institucionales coinciden en que la falta de fondos limita drásticamente su capacidad operativa, siendo la FT un elemento vertebrador del terrorismo global.<br><br>Este trabajo fundamenta su análisis en información reciente, utilizando ejemplos observados en los últimos años que resultan representativos de las dinámicas contemporáneas. El objetivo principal consiste en construir una <strong>simulación de red de financiación del terrorismo</strong> basada en la evidencia recogida en la literatura especializada (tipologías del GAFI, EBA, etc.).<br><br>Sobre dicha simulación se realiza un análisis estructural mediante herramientas propias del análisis de redes (Economía de Redes) y la Teoría de Juegos, incluyendo el estudio de métricas de centralidad, la importancia relativa de los nodos clave (chokepoints) y la resiliencia del sistema ante intervenciones policiales. El modelo resultante constituye una representación realista y fundamentada empíricamente, derivando en un modelo analítico altamente útil para la inteligencia financiera y el diseño de políticas de seguridad.</div>""", unsafe_allow_html=True)
         with tab_en: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.<br><br>Large organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.<br><br>This paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a <strong>simulation of a terrorist financing network</strong> based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).<br><br>A structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>""", unsafe_allow_html=True)
 
 # ==========================================
-# FLUJO DE SIMULACIÓN (3 FASES)
+# 3. FUNCIONES DE CARGA Y ESTILADO
 # ==========================================
-
 def leer_tabla_excel(wb, nombre_tabla_buscada):
     for hoja in wb.worksheets:
         if nombre_tabla_buscada in hoja.tables:
@@ -195,26 +193,23 @@ def leer_tabla_excel(wb, nombre_tabla_buscada):
             return pd.DataFrame(filas[1:], columns=filas[0])
     return pd.DataFrame() 
 
-def aplicar_estilos(df):
+def aplicar_estilos_base(df):
     styler = df.style.set_properties(**{'text-align': 'center'})
     styler = styler.set_table_styles([dict(selector='th', props=[('text-align', 'center')])])
-    
     if 'Activo' in df.columns:
         def color_activo(val):
             try:
-                v = int(val)
-                if v == 1: return 'background-color: #C6EFCE; color: #006100; font-weight: bold;'
-                elif v == 0: return 'background-color: #FFC7CE; color: #9C0006; font-weight: bold;'
+                if int(val) == 1: return 'background-color: #C6EFCE; color: #006100; font-weight: bold;'
+                elif int(val) == 0: return 'background-color: #FFC7CE; color: #9C0006; font-weight: bold;'
             except: pass
             return ''
-        if hasattr(styler, 'map'): styler = styler.map(color_activo, subset=['Activo'])
-        else: styler = styler.applymap(color_activo, subset=['Activo'])
-            
+        styler = styler.applymap(color_activo, subset=['Activo'])
     return styler
 
+# ==========================================
+# 4. FLUJO DE DATOS
+# ==========================================
 st.markdown("---")
-st.markdown("<div style='text-align: center; color: #555; font-size: 14px;'>FLUJO DEL SIMULADOR</div>", unsafe_allow_html=True)
-
 archivo_subido = st.file_uploader("Sube tu archivo Excel alternativo (Opcional)", type=["xlsx"])
 
 wb = None
@@ -222,100 +217,97 @@ if archivo_subido is not None:
     wb = load_workbook(archivo_subido, data_only=True)
 elif os.path.exists("Diseño Red FT.xlsx"):
     wb = load_workbook("Diseño Red FT.xlsx", data_only=True)
-else:
-    st.info("💡 Sube un archivo Excel para comenzar, o asegúrate de que el archivo 'Diseño Red FT.xlsx' esté en la misma carpeta que este script para que se cargue automáticamente.")
 
 if wb is not None:
-    # Extracción de todas las tablas
     df_tipos = leer_tabla_excel(wb, "tblTiposDeNodo")
-    df_nodos_original = leer_tabla_excel(wb, "tblNodos")
-    df_enlaces_original = leer_tabla_excel(wb, "tblEnlaces")
+    df_nodos_orig = leer_tabla_excel(wb, "tblNodos")
+    df_enlaces_orig = leer_tabla_excel(wb, "tblEnlaces")
     df_pesos = leer_tabla_excel(wb, "tblPesos")
-    
-    # NUEVAS MATRICES PONDERADAS
-    df_pond_costes = leer_tabla_excel(wb, "tblMatrizPonderadaCostes")
-    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValorOperativo")
+    df_p_costes = leer_tabla_excel(wb, "tblMatrizPonderadaCostes")
+    df_p_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValoroperativo")
     df_tradeoff = leer_tabla_excel(wb, "tblMatrizTradeOff")
 
-    # ==========================================
-    # FASE 1: BASE DE DATOS Y PARAMETRIZACIÓN
-    # ==========================================
+    # FASE 1
     st.markdown("## ⚙️ Fase 1: Base de Datos y Parametrización")
-    st.markdown("Revisa las entidades, rutas y la metodología de pesos aplicada al modelo.")
-
-    tab_sim1, tab_sim2, tab_sim3, tab_sim4 = st.tabs(["🟢 Nodos (Actores)", "🔗 Enlaces (Rutas)", "🏷️ Tipos de Nodo", "⚖️ Matriz de Pesos (Metodología)"])
-
-    with tab_sim1:
-        st.info("💡 Simula el arresto de un actor cambiando su columna **Activo** a 0.")
-        cols_nodos = [c for c in ['Activo', 'NodoID', 'Nombre', 'Tipo', 'Descripción'] if c in df_nodos_original.columns]
-        if not cols_nodos: cols_nodos = df_nodos_original.columns.tolist()
-        df_nodos_editado = st.data_editor(aplicar_estilos(df_nodos_original[cols_nodos]), use_container_width=True, num_rows="dynamic", key="editor_nodos")
+    tab_sim1, tab_sim2, tab_sim3, tab_sim4 = st.tabs(["🟢 Nodos", "🔗 Enlaces", "🏷️ Tipos", "⚖️ Pesos"])
+    with tab_sim1: 
+        df_n_ed = st.data_editor(aplicar_estilos_base(df_nodos_orig), use_container_width=True, num_rows="dynamic", key="ed_n")
     with tab_sim2:
-        st.info("💡 Edita la columna **Exposición** o desactiva rutas (1 -> 0).")
-        cols_enlaces = [c for c in ['Activo', 'Nodo Origen', 'Nodo Destino', 'Tipo de Enlace', 'Exposición', 'Coste', 'Capacidad', 'Eficiencia'] if c in df_enlaces_original.columns]
-        if not cols_enlaces: cols_enlaces = df_enlaces_original.columns.tolist()
-        df_enlaces_editado = st.data_editor(aplicar_estilos(df_enlaces_original[cols_enlaces]), use_container_width=True, num_rows="dynamic", key="editor_enlaces")
-    with tab_sim3: 
-        st.dataframe(aplicar_estilos(df_tipos), use_container_width=True)
-    with tab_sim4:
-        st.markdown("**Sistema de escalas directa e inversa:** Esta tabla define cómo los atributos cualitativos se traducen matemáticamente para calcular el 'camino de menor resistencia' (fricción).")
-        if not df_pesos.empty:
-            st.dataframe(aplicar_estilos(df_pesos), use_container_width=True, hide_index=True)
-        else:
-            st.warning("No se ha encontrado la tabla 'tblPesos' en el archivo Excel.")
+        df_e_ed = st.data_editor(aplicar_estilos_base(df_enlaces_orig), use_container_width=True, num_rows="dynamic", key="ed_e")
+    with tab_sim3: st.dataframe(aplicar_estilos_base(df_tipos), use_container_width=True)
+    with tab_sim4: st.dataframe(aplicar_estilos_base(df_pesos), use_container_width=True, hide_index=True)
 
-    # Procesamiento interno
-    df_tipos = df_tipos.dropna(how='all')
-    df_nodos = df_nodos_editado.dropna(how='all')
-    df_enlaces = df_enlaces_editado.dropna(subset=['Nodo Origen', 'Nodo Destino'])
-
-    df_nodos['Activo'] = pd.to_numeric(df_nodos['Activo'], errors='coerce')
-    df_enlaces['Activo'] = pd.to_numeric(df_enlaces['Activo'], errors='coerce')
-
-    df_nodos = pd.merge(df_nodos, df_tipos[['Tipo', 'Capa']], on='Tipo', how='left')
-    df_nodos['Capa'] = pd.to_numeric(df_nodos['Capa'], errors='coerce').fillna(0)
-
-    nodos_activos = df_nodos[df_nodos['Activo'] == 1]
-    enlaces_activos = df_enlaces[df_enlaces['Activo'] == 1]
-
-    G = nx.DiGraph()
-    colores_capa = {'O': '#FF9999', 'I': '#99CCFF', 'G': '#FFCC99', 'D': '#99FF99'}
-
-    for _, row in nodos_activos.iterrows():
-        tipo_nodo = str(row['Tipo']).strip()
-        nombre_nodo = str(row.get('Nombre', ''))
-        G.add_node(str(row['NodoID']).strip(), label=str(row['NodoID']).strip() + (" - " + nombre_nodo if nombre_nodo else ""), color=colores_capa.get(tipo_nodo, '#CCCCCC'), level=int(row['Capa']), title=f"Tipo: {str(row.get('Descripción', tipo_nodo))}")
-
-    for _, row in enlaces_activos.iterrows():
-        origen = str(row['Nodo Origen']).strip()
-        destino = str(row['Nodo Destino']).strip()
-        if origen in G.nodes and destino in G.nodes:
-            exposicion = str(row.get('Exposición', '')).strip().lower()
-            if 'medio-alto' in exposicion: color_flecha = '#90EE90'
-            elif 'medio-bajo' in exposicion: color_flecha = '#FFB84D'
-            elif 'alto' in exposicion: color_flecha = '#008000'
-            elif 'medio' in exposicion: color_flecha = '#FFD700'
-            elif 'bajo' in exposicion: color_flecha = '#FF4444'
-            else: color_flecha = '#999999'
-            G.add_edge(origen, destino, color=color_flecha, title=f"Exposición: {row.get('Exposición', 'N/A')} | Coste: {row.get('Coste', 'N/A')}")
-
-    # ==========================================
-    # FASE 2: TOPOLOGÍA DE LA RED
-    # ==========================================
-    st.markdown("## 🌐 Fase 2: Topología Interactiva de la Red")
+    # Procesamiento Grafo Estándar
+    n_ok = df_n_ed[pd.to_numeric(df_n_ed['Activo'], errors='coerce') == 1]
+    e_ok = df_e_ed[pd.to_numeric(df_e_ed['Activo'], errors='coerce') == 1]
     
-    if not nodos_activos.empty:
-        num_capas = nodos_activos['Capa'].nunique()
-        max_nodos_por_capa = nodos_activos['Capa'].value_counts().max()
-    else:
-        num_capas, max_nodos_por_capa = 1, 1
+    colores_capa = {'O':'#FF9999','I':'#99CCFF','G':'#FFCC99','D':'#99FF99'}
+    
+    G = nx.DiGraph()
+    for _, r in n_ok.iterrows():
+        tipo = str(r['Tipo']).strip()
+        G.add_node(str(r['NodoID']), label=f"{r['NodoID']} - {r.get('Nombre','')}", color=colores_capa.get(tipo,'#CCC'), level=int(r.get('Capa',0)))
         
-    sep_horizontal = max(int((1440 - 200) / (num_capas - 1 if num_capas > 1 else 1)), 250)
-    sep_vertical = max(int((650 - 120) / max_nodos_por_capa), 60)
+    for _, r in e_ok.iterrows():
+        origen, destino = str(r['Nodo Origen']), str(r['Nodo Destino'])
+        if origen in G.nodes and destino in G.nodes:
+            expo = str(r.get('Exposición', '')).strip().lower()
+            if 'medio-alto' in expo: color_f = '#90EE90'
+            elif 'medio-bajo' in expo: color_f = '#FFB84D'
+            elif 'alto' in expo: color_f = '#008000'
+            elif 'medio' in expo: color_f = '#FFD700'
+            elif 'bajo' in expo: color_f = '#FF4444'
+            else: color_f = '#999999'
+            G.add_edge(origen, destino, color=color_f)
 
-    net = Network(height="650px", width="100%", directed=True, bgcolor="#ffffff", font_color="black")
-    net.from_nx(G)
-    net.set_options(f"""
+    # Procesamiento Grafo Trade-Off
+    G_to = nx.DiGraph()
+    for _, r in n_ok.iterrows():
+        tipo = str(r['Tipo']).strip()
+        G_to.add_node(str(r['NodoID']), label=f"{r['NodoID']} - {r.get('Nombre','')}", color=colores_capa.get(tipo,'#CCC'), level=int(r.get('Capa',0)))
+    
+    # Calcular umbrales de percentil para el Trade-Off
+    threshold_high, threshold_med = 0, 0
+    if not df_tradeoff.empty:
+        df_to_num = df_tradeoff.copy()
+        df_to_num.set_index(df_to_num.columns[0], inplace=True)
+        df_to_num = df_to_num.apply(pd.to_numeric, errors='coerce').fillna(0)
+        non_zero_vals = df_to_num.values[df_to_num.values > 0]
+        if len(non_zero_vals) > 0:
+            threshold_high = pd.Series(non_zero_vals.flatten()).quantile(0.66)
+            threshold_med = pd.Series(non_zero_vals.flatten()).quantile(0.33)
+
+    for _, r in e_ok.iterrows():
+        origen, destino = str(r['Nodo Origen']), str(r['Nodo Destino'])
+        if origen in G_to.nodes and destino in G_to.nodes:
+            to_val = 0
+            if not df_tradeoff.empty:
+                try:
+                    to_val = df_to_num.loc[origen, destino]
+                except: pass
+            
+            # Asignar color y grosor según el valor del Trade-Off
+            if to_val >= threshold_high and to_val > 0:
+                c_edge, w_edge = '#008000', 4.0  # Verde oscuro y grueso (Óptimo)
+            elif to_val >= threshold_med and to_val > 0:
+                c_edge, w_edge = '#90EE90', 2.0  # Verde claro (Medio)
+            elif to_val > 0:
+                c_edge, w_edge = '#FFB84D', 1.0  # Naranja (Subóptimo)
+            else:
+                c_edge, w_edge = '#E6E6E6', 0.5  # Gris tenue (Sin valor/Inactivo)
+                
+            G_to.add_edge(origen, destino, color=c_edge, width=w_edge, title=f"Trade-Off: {to_val:.2f}")
+
+    # Layout params
+    if not n_ok.empty:
+        num_capas = pd.to_numeric(n_ok['Capa'], errors='coerce').nunique()
+        max_nodos = pd.to_numeric(n_ok['Capa'], errors='coerce').value_counts().max()
+    else: num_capas, max_nodos = 1, 1
+    
+    sep_horizontal = max(int((1440 - 200) / (num_capas - 1 if num_capas > 1 else 1)), 250)
+    sep_vertical = max(int((650 - 120) / max_nodos), 60)
+    
+    opciones_net = f"""
     {{
       "layout": {{ "hierarchical": {{ "enabled": true, "direction": "LR", "sortMethod": "directed", "levelSeparation": {sep_horizontal}, "nodeDistance": {sep_vertical}, "treeSpacing": {sep_vertical}, "parentCentralization": true }} }},
       "physics": {{ "enabled": false }},
@@ -323,22 +315,37 @@ if wb is not None:
       "nodes": {{ "font": {{ "size": 16, "face": "Arial" }} }},
       "interaction": {{ "zoomView": true, "dragNodes": true, "hover": true }}
     }}
-    """)
+    """
 
-    net.save_graph("mapa_interactivo.html")
-    with open("mapa_interactivo.html", 'r', encoding='utf-8') as f:
-        codigo_html = f.read()
+    # Generación redes HTML
+    net1 = Network(height="600px", width="100%", directed=True, bgcolor="#ffffff")
+    net1.from_nx(G)
+    net1.set_options(opciones_net)
+    net1.save_graph("grafo_gen.html")
+    
+    net2 = Network(height="600px", width="100%", directed=True, bgcolor="#ffffff")
+    net2.from_nx(G_to)
+    net2.set_options(opciones_net)
+    net2.save_graph("grafo_to.html")
 
+    # FASE 2: RENDERIZADO
+    st.markdown("## 🌐 Fase 2: Topología Interactiva de la Red")
+    
     gcol1, gcol2 = st.columns([4, 1])
     with gcol1:
-        components.html(codigo_html, height=670)
+        tab_graf1, tab_graf2 = st.tabs(["🌐 Topología Estándar (Exposición)", "🎯 Rutas Críticas (Trade-Off)"])
+        with tab_graf1:
+            components.html(open("grafo_gen.html", 'r', encoding='utf-8').read(), height=620)
+        with tab_graf2:
+            st.markdown("<div style='font-size: 14px; margin-bottom: 5px; color: #555;'>Visualización de los caminos de menor resistencia (Equilibrio de Nash). Los enlaces en <strong>verde grueso</strong> identifican los canales de mayor eficiencia operativa frente al riesgo.</div>", unsafe_allow_html=True)
+            components.html(open("grafo_to.html", 'r', encoding='utf-8').read(), height=620)
 
     with gcol2:
         st.subheader("📊 Análisis")
         st.metric("Total Nodos Activos", len(G.nodes))
         st.metric("Total Rutas Activas", len(G.edges))
         
-        st.markdown("### Mapa de Calor (Exposición)")
+        st.markdown("### Mapa de Calor (Topología Estándar)")
         st.markdown("""
         <div style="line-height: 2; font-size: 15px;">
             🔴 <strong>Bajo:</strong> Canal opaco<br>
@@ -348,53 +355,33 @@ if wb is not None:
         </div>
         """, unsafe_allow_html=True)
 
-    # ==========================================
-    # FASE 3: MODELADO MATEMÁTICO
-    # ==========================================
+    # FASE 3
     st.markdown("## 🔢 Fase 3: Modelado Matemático (Teoría de Grafos)")
-    st.markdown("Traducción algebraica de la topología superior para el cálculo de equilibrio y cuellos de botella.")
-
-    with st.expander("Matrices Matemáticas del Sistema (Teoría de Grafos)", expanded=True):
-        tab_matriz1, tab_matriz2, tab_matriz3, tab_matriz4 = st.tabs([
-            "1️⃣ Adyacencia (Topológica)", 
-            "2️⃣ Costes (Fricción)", 
-            "3️⃣ Valor Operativo (Flujo)", 
-            "4️⃣ Trade-Off (Equilibrio)"
-        ])
-
-        with tab_matriz1:
-            st.markdown("**Matriz Binaria:** Representa la existencia de rutas (1 = conectado). Es la base estructural para calcular la centralidad de grado.")
-            if len(G.nodes) > 0:
-                matriz_adyacencia = nx.to_pandas_adjacency(G, dtype=int)
-                matriz_vacia_ady = matriz_adyacencia.replace(0, "")
-                st.dataframe(matriz_vacia_ady, use_container_width=True)
-            else:
-                st.info("La red está vacía.")
-
-        with tab_matriz2:
-            st.markdown("**Matriz Ponderada de Costes:** Refleja la fricción, exposición o coste intrínseco de utilizar cada canal para el movimiento de fondos.")
-            if not df_pond_costes.empty:
-                df_pond_costes.set_index(df_pond_costes.columns[0], inplace=True)
-                matriz_costes_limpia = df_pond_costes.replace(0, "").fillna("")
-                st.dataframe(matriz_costes_limpia, use_container_width=True)
-            else:
-                st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaCostes' en el archivo Excel.")
-
-        with tab_matriz3:
-            st.markdown("**Matriz Ponderada de Valor Operativo:** Refleja la capacidad, eficiencia o volumen del flujo que permite mover cada canal financiero.")
-            if not df_pond_valor.empty:
-                df_pond_valor.set_index(df_pond_valor.columns[0], inplace=True)
-                matriz_valor_limpia = df_pond_valor.replace(0, "").fillna("")
-                st.dataframe(matriz_valor_limpia, use_container_width=True)
-            else:
-                st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaValoroperativo' en el archivo Excel.")
+    with st.expander("Matrices Térmicas del Sistema", expanded=True):
+        m1, m2, m3, m4 = st.tabs(["1️⃣ Adyacencia", "2️⃣ Costes", "3️⃣ Valor", "4️⃣ Trade-Off"])
+        
+        with m1:
+            st.markdown("**Matriz Binaria:** Topología estructural (1 = conectado).")
+            adj = nx.to_pandas_adjacency(G, dtype=int).replace(0, "")
+            st.dataframe(adj, use_container_width=True)
+            
+        with m2:
+            st.markdown("**Matriz de Costes:** Escala térmica (rojos) para fricción y exposición.")
+            if not df_p_costes.empty:
+                df_p_costes.set_index(df_p_costes.columns[0], inplace=True)
+                df_num_c = df_p_costes.apply(pd.to_numeric, errors='coerce')
+                st.dataframe(df_num_c.style.background_gradient(cmap='OrRd').format("{:.2f}", na_rep=""), use_container_width=True)
                 
-        with tab_matriz4:
-            st.markdown("**Matriz Trade-Off:** Matriz combinada que evalúa la relación coste-beneficio para identificar los canales óptimos y las decisiones racionales de los actores (Equilibrio de Nash).")
+        with m3:
+            st.markdown("**Matriz de Valor Operativo:** Escala térmica (azules) para capacidad y eficiencia.")
+            if not df_p_valor.empty:
+                df_p_valor.set_index(df_p_valor.columns[0], inplace=True)
+                df_num_v = df_p_valor.apply(pd.to_numeric, errors='coerce')
+                st.dataframe(df_num_v.style.background_gradient(cmap='Blues').format("{:.2f}", na_rep=""), use_container_width=True)
+                
+        with m4:
+            st.markdown("**Matriz de Trade-Off:** Relación coste-beneficio (Escala verde y 2 decimales).")
             if not df_tradeoff.empty:
                 df_tradeoff.set_index(df_tradeoff.columns[0], inplace=True)
-                matriz_trade_limpia = df_tradeoff.replace(0, "").fillna("")
-                st.dataframe(matriz_trade_limpia, use_container_width=True)
-            else:
-                st.warning("No se ha encontrado la tabla 'tblMatrizTradeOff' en el archivo Excel.")
-                
+                df_num_t = df_tradeoff.apply(pd.to_numeric, errors='coerce')
+                st.dataframe(df_num_t.style.background_gradient(cmap='YlGn').format("{:.2f}", na_rep=""), use_container_width=True)
