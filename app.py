@@ -397,3 +397,4 @@ if wb is not None:
                 st.dataframe(matriz_trade_limpia, use_container_width=True)
             else:
                 st.warning("No se ha encontrado la tabla 'tblMatrizTradeOff' en el archivo Excel.")
+                
