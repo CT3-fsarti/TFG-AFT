@@ -228,7 +228,7 @@ if wb is not None:
     df_nodos_original = leer_tabla_excel(wb, "tblNodos")
     df_enlaces_original = leer_tabla_excel(wb, "tblEnlaces")
     df_pesos = leer_tabla_excel(wb, "tblPesos")
-    df_ponderada_excel = leer_tabla_excel(wb, "tblPonderada")
+    df_ponderada_excel = leer_tabla_excel(wb, "tblMatrizPonderada")
 
     # ==========================================
     # FASE 1: BASE DE DATOS Y PARAMETRIZACIÓN
