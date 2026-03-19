@@ -107,7 +107,7 @@ with col_profile:
         # Nombre con margen reducido
         st.markdown(f"<p class='centered-text' style='font-size: 18px; margin-bottom: 5px;'><strong>Marina Sarti Pineda</strong></p>", unsafe_allow_html=True)
         
-        # Enlace de LinkedIn debajo del nombre
+        # Enlace de LinkedIn
         st.markdown("""
         <div style="text-align: center; margin-bottom: 15px;">
             <a href="https://www.linkedin.com/in/marina-sarti-pineda-27211b29b/?originalSubdomain=es" target="_blank" style="text-decoration: none; font-size: 14px; color: #005691;">🔗 Perfil de LinkedIn</a>
@@ -129,6 +129,7 @@ with col_profile:
         </div>
         """, unsafe_allow_html=True)
         
+        # Biografía multilingüe
         st.markdown(f"""
         <div style="font-size: 14px; line-height: 1.5; color: #333; text-align: justify;">
             <p style="margin-bottom: 8px;">{html_flag_es} Graduada en Economía por la <strong>Universidad Carlos III de Madrid y París Dauphine (DTI)</strong>, Marina combina el rigor analítico macroeconómico con una vocación por la seguridad global, la inteligencia financiera y la tecnología.<br><br>Su TFG pionero en Modelado Estructurado de Financiación del Terrorismo se desarrolló en el marco de las tipologías del GAFI.</p>
@@ -185,7 +186,7 @@ with col_main:
         
     st.markdown("<hr style='margin-top: 15px; margin-bottom: 25px; border-top: 1px solid #111;'>", unsafe_allow_html=True)
 
-    # 4. SINOPSIS DEL PROYECTO (Orden de pestañas ajustado a Francés primero para que abra por defecto)
+    # 4. SINOPSIS DEL PROYECTO
     st.markdown("## 🎓 Sinopsis del Proyecto")
     with st.expander("Leer Sinopsis / Abstract Completo", expanded=True):
         tab_fr, tab_es, tab_en = st.tabs(["Français", "Español", "English"])
@@ -376,19 +377,6 @@ if wb is not None:
         st.subheader("📊 Análisis")
         st.metric("Total Nodos Activos", len(G.nodes))
         st.metric("Total Rutas Activas", len(G.edges))
-        
-        # =========================================================
-        # NUEVO: MATRIZ DE ADYACENCIA
-        # =========================================================
-        with st.expander("🔢 Matriz de Adyacencia"):
-            if len(G.nodes) > 0:
-                # Convertimos el grafo en un DataFrame de pandas
-                matriz_adyacencia = nx.to_pandas_adjacency(G, dtype=int)
-                st.dataframe(matriz_adyacencia, use_container_width=True)
-            else:
-                st.info("La red está vacía. No hay matriz disponible.")
-        # =========================================================
-
         st.markdown("### Mapa de Calor (Exposición)")
         
         st.markdown("""
