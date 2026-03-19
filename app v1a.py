@@ -17,38 +17,22 @@ st.markdown("""
     :root {
         --uc3m-blue: #005691;
     }
-    
-    /* DOMANDO LOS ENCABEZADOS NATIVOS DE STREAMLIT */
-    .stMarkdown h2 {
-        font-size: 22px !important;
-        color: #111 !important;
-        padding-bottom: 5px !important;
-        font-weight: 600 !important;
-    }
-    .stMarkdown h3 {
-        font-size: 18px !important;
-        color: #333 !important;
-        font-weight: 600 !important;
-    }
-    
     .big-font { font-size:16px !important; color: #31333F; }
     .header-style { background-color: #F8F9FB; padding: 25px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #E6E9EF; }
     .centered-text { text-align: center; }
     .language-block { display: flex; align-items: flex-start; margin-bottom: 18px; }
     
-    /* BANDERAS NORMALIZADAS */
+    /* BANDERAS NORMALIZADAS: Tamaño fijo y object-fit para unificar resoluciones */
     .flag-img { 
         width: 40px !important; 
         height: 26px !important; 
         object-fit: cover !important; 
         margin-right: 15px; 
-        margin-top: 2px;
+        margin-top: 4px;
         border: 1px solid #ddd;
     }
     
-    /* TEXTO DE LAS TRADUCCIONES */
-    .title-text { font-size: 15px; color: #222; line-height: 1.5; }
-    
+    .title-text { font-size: 17px; color: #111; line-height: 1.5; }
     .profile-photo {
         width: 160px; height: 160px; border-radius: 50% !important; 
         object-fit: cover !important; display: block;
@@ -81,13 +65,13 @@ with col_profile:
         if assets_status["Marina Photo B64"]:
              st.markdown(f"""<div style="margin-bottom: 15px;"><img src='data:image/png;base64,{assets_status["Marina Photo B64"]}' class='profile-photo' /></div>""", unsafe_allow_html=True)
         st.markdown(f"<p class='centered-text' style='font-size: 18px;'><strong>Marina Sarti Pineda</strong></p>", unsafe_allow_html=True)
-        st.markdown("""<div style="font-size: 15px; line-height: 1.5; color: #333; text-align: justify;">Graduada en Economía por la Universidad Carlos III de Madrid y París Dauphine, Marina combina el rigor analítico macroeconómico con una vocación por la seguridad global y la inteligencia financiera. Su TFG pionero en Modelado Estructurado de Financiación del Terrorismo se desarrolló en el marco de las tipologías del GAFI.</div>""", unsafe_allow_html=True)
+        st.markdown("""Graduada en Economía por la Universidad Carlos III de Madrid y París Dauphine, Marina combina el rigor analítico macroeconómico con una vocación por la seguridad global y la inteligencia financiera. Su TFG pionero en Modelado Estructurado de Financiación del Terrorismo se desarrolló en el marco de las tipologías del GAFI.""")
         st.write("") 
         _, clcol, _ = st.columns([1, 2, 1])
         with clcol: st.markdown('[🔗 Perfil de LinkedIn](https://www.linkedin.com/in/marina-sarti-pineda-27211b29b/?originalSubdomain=es)', unsafe_allow_html=True)
 
 with col_main:
-    # 3. ENCABEZADO INSTITUCIONAL HOMOGENEIZADO
+    # 3. NUEVO ENCABEZADO INSTITUCIONAL
     col_logo, col_titles = st.columns([1, 2.5])
     with col_logo:
         if assets_status["Combined Logo B64"]:
@@ -95,11 +79,11 @@ with col_main:
     with col_titles:
         st.markdown("""
         <div style="text-align: left; padding-top: 10px;">
-            <div style="margin-bottom: 6px;">
-                <span style="font-style: italic; color: #555; font-size: 18px;">Trabajo Fin de Grado - </span>
-                <strong style="color: #005691; font-size: 24px;">Doble Titulación Internacional en Economía.</strong>
+            <div style="font-size: 17px; margin-bottom: 6px;">
+                <span style="font-style: italic; color: #333;">Trabajo Fin de Grado - </span>
+                <strong style="color: #005691;">Doble Titulación Internacional en Economía.</strong>
             </div>
-            <div style="color: #222; font-style: italic; font-size: 18px; line-height: 1.4;">
+            <div style="color: #333; font-style: italic; font-size: 16px; line-height: 1.4;">
                 Redes de Financiación del Terrorismo:<br>
                 Simulación y análisis mediante Economía de Redes y Teoría de Juegos
             </div>
@@ -108,6 +92,7 @@ with col_main:
         
     st.markdown("<hr style='margin-top: 15px; margin-bottom: 20px; border-top: 1px solid #111;'>", unsafe_allow_html=True)
     
+    # BLOQUE DE BANDERAS FR Y GB (NORMALIZADAS)
     if assets_status["Flag FR B64"]: 
         st.markdown(f"""
         <div class="language-block">
@@ -130,22 +115,22 @@ with col_main:
         </div>
         """, unsafe_allow_html=True)
         
-    st.markdown("<hr style='margin-top: 15px; margin-bottom: 25px; border-top: 1px solid #111;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin-top: 20px; margin-bottom: 25px; border-top: 1px solid #111;'>", unsafe_allow_html=True)
 
     # 4. SINOPSIS DEL PROYECTO
     st.markdown("## 🎓 Sinopsis del Proyecto")
     with st.expander("🇪🇸 🇬🇧 🇫🇷 Leer Sinopsis / Abstract Completo", expanded=True):
         tab_es, tab_en, tab_fr = st.tabs(["🇪🇸 Español", "🇬🇧 English", "🇫🇷 Français"])
-        with tab_es: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">La Financiación del Terrorismo (FT) consiste en la captación de fondos, lo cual abarca el proceso de solicitud, recaudación, provisión y puesta a disposición de dinero o activos con el fin de facilitar o potenciar la capacidad de cualquier persona u organización para llevar a cabo actividades relacionadas con el terrorismo. En el caso concreto de España, la Ley 10/2010 establece un marco riguroso frente al suministro, depósito o distribución de fondos.<br><br>Tanto los grandes grupos organizados como las pequeñas células e incluso los actores individuales necesitan dinero para el desarrollo de la actividad terrorista. La literatura académica y los informes institucionales coinciden en que la falta de fondos limita drásticamente su capacidad operativa, siendo la FT un elemento vertebrador del terrorismo global.<br><br>Este trabajo fundamenta su análisis en información reciente, utilizando ejemplos observados en los últimos años que resultan representativos de las dinámicas contemporáneas. El objetivo principal consiste en construir una <strong>simulación de red de financiación del terrorismo</strong> basada en la evidencia recogida en la literatura especializada (tipologías del GAFI, EBA, etc.).<br><br>Sobre dicha simulación se realiza un análisis estructural mediante herramientas propias del análisis de redes (Economía de Redes) y la Teoría de Juegos, incluyendo el estudio de métricas de centralidad, la importancia relativa de los nodos clave (chokepoints) y la resiliencia del sistema ante intervenciones policiales. El modelo resultante constituye una representación realista y fundamentada empíricamente, derivando en un modelo analítico altamente útil para la inteligencia financiera y el diseño de políticas de seguridad.</div>""", unsafe_allow_html=True)
-        with tab_en: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.<br><br>Large organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.<br><br>This paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a <strong>simulation of a terrorist financing network</strong> based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).<br><br>A structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>""", unsafe_allow_html=True)
-        with tab_fr: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Le Financement du Terrorisme (FT) consiste en la collecte de fonds, ce qui englobe le processus de sollicitation, de rassemblement, de fourniture et de mise à disposition d'argent ou d'actifs dans le but de faciliter la capacité à mener des activités terroristes. En Espagne, la loi 10/2010 établit un cadre rigoureux contre la fourniture ou la distribution de fonds.<br><br>Les grands groupes organisés, les petites cellules et les acteurs individuels ont besoin d'argent pour développer leurs activités terroristes. La littérature académique s'accorde à dire que le manque de fonds limite considérablement leur capacité opérationnelle, le FT étant un élément structurant du terrorisme mondial.<br><br>Ce travail fonde son analyse sur des informations récentes, en utilisant des exemples représentatifs des dynamiques contemporaines. L'objectif principal est de construire une <strong>simulation d'un réseau de financement du terrorisme</strong> basée sur les preuves recueillies dans la littérature spécialisée (typologies du GAFI, ABE, etc.).<br><br>Une analyse structurelle est réalisée sur cette simulation à l'aide de l'Économie des Réseaux et de la Théorie des Jeux, incluant l'étude des métriques de centralité, l'importance des nœuds clés (points d'étranglement) et la résilience du système face aux interventions policières. Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.</div>""", unsafe_allow_html=True)
+        with tab_es: st.markdown("""La Financiación del Terrorismo (FT) consiste en la captación de fondos, lo cual abarca el proceso de solicitud, recaudación, provisión y puesta a disposición de dinero o activos con el fin de facilitar o potenciar la capacidad de cualquier persona u organización para llevar a cabo actividades relacionadas con el terrorismo. En el caso concreto de España, la Ley 10/2010 establece un marco riguroso frente al suministro, depósito o distribución de fondos.\n\nTanto los grandes grupos organizados como las pequeñas células e incluso los actores individuales necesitan dinero para el desarrollo de la actividad terrorista. La literatura académica y los informes institucionales coinciden en que la falta de fondos limita drásticamente su capacidad operativa, siendo la FT un elemento vertebrador del terrorismo global.\n\nEste trabajo fundamenta su análisis en información reciente, utilizando ejemplos observados en los últimos años que resultan representativos de las dinámicas contemporáneas. El objetivo principal consiste en construir una **simulación de red de financiación del terrorismo** basada en la evidencia recogida en la literatura especializada (tipologías del GAFI, EBA, etc.). \n\nSobre dicha simulación se realiza un análisis estructural mediante herramientas propias del análisis de redes (Economía de Redes) y la Teoría de Juegos, incluyendo el estudio de métricas de centralidad, la importancia relativa de los nodos clave (chokepoints) y la resiliencia del sistema ante intervenciones policiales. El modelo resultante constituye una representación realista y fundamentada empíricamente, derivando en un modelo analítico altamente útil para la inteligencia financiera y el diseño de políticas de seguridad.""")
+        with tab_en: st.markdown("""Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.\n\nLarge organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.\n\nThis paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a **simulation of a terrorist financing network** based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).\n\nA structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.""")
+        with tab_fr: st.markdown("""Le Financement du Terrorisme (FT) consiste en la collecte de fonds, ce qui englobe le processus de sollicitation, de rassemblement, de fourniture et de mise à disposition d'argent ou d'actifs dans le but de faciliter la capacité à mener des activités terroristes. En Espagne, la loi 10/2010 établit un cadre rigoureux contre la fourniture ou la distribution de fonds.\n\nLes grands groupes organisés, les petites cellules et les acteurs individuels ont besoin d'argent pour développer leurs activités terroristes. La littérature académique s'accorde à dire que le manque de fonds limite considérablement leur capacité opérationnelle, le FT siendo un élément structurant du terrorisme mondial.\n\nCe travail fonde son analyse sur des informations récentes, en utilisant des exemples représentatifs des dynamiques contemporaines. L'objectif principal est de construire une **simulation d'un réseau de financement du terrorisme** basada en pruebas recogidas en la literatura especializada (typologies du GAFI, ABE, etc.).\n\nUne analyse structurelle est réalisée sur cette simulation à l'aide de l'Économie des Réseaux et de la Théorie des Jeux, incluant l'étude des métriques de centralité, l'importance des nœuds clés (points d'étranglement) et la résilience du système face aux interventions policières. Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.""")
 
 # ==========================================
 # 5. SIMULADOR Y TABLAS
 # ==========================================
 st.markdown("---")
 st.markdown("## 🔬 Simulador de Inteligencia Operativa")
-st.markdown("""<div style="font-size: 15px; margin-bottom: 15px;">Herramienta interactiva para la simulación de rutas críticas. Sube el modelo base y evalúa la resiliencia de la red frente a la presión policial.</div>""", unsafe_allow_html=True)
+st.markdown("Herramienta interactiva para la simulación de rutas críticas. Sube el modelo base y evalúa la resiliencia de la red frente a la presión policial.")
 
 archivo_subido = st.file_uploader("Sube tu archivo Excel del modelo", type=["xlsx"])
 
@@ -162,6 +147,17 @@ def aplicar_estilos(df):
     styler = df.style.set_properties(**{'text-align': 'center'})
     styler = styler.set_table_styles([dict(selector='th', props=[('text-align', 'center')])])
     
+    # Sombreado de filas alternas (Zebra striping)
+    def zebra_stripe(data):
+        df_styles = pd.DataFrame('', index=data.index, columns=data.columns)
+        for i in range(len(data)):
+            if i % 2 == 0:
+                df_styles.iloc[i] = 'background-color: #F4F6F9;' 
+        return df_styles
+        
+    styler = styler.apply(zebra_stripe, axis=None)
+    
+    # Color condicional para la columna 'Activo'
     if 'Activo' in df.columns:
         def color_activo(val):
             try:
@@ -318,8 +314,9 @@ if archivo_subido is not None:
         st.metric("Total Rutas Activas", len(G.edges))
         st.markdown("### Mapa de Calor (Exposición)")
         
+        # Mapa de Calor con saltos de línea forzados en HTML para garantizar la presentación vertical
         st.markdown("""
-        <div style="line-height: 2; font-size: 15px;">
+        <div style="line-height: 2;">
             🔴 <strong>Bajo:</strong> Canal opaco<br>
             🟠 <strong>Medio-Bajo:</strong> Riesgo latente<br>
             🟡 <strong>Medio:</strong> Neutro<br>
