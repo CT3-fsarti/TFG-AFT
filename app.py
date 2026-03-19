@@ -115,7 +115,7 @@ with col_profile:
         """, unsafe_allow_html=True)
         
         # ==========================================
-        # STACK TECNOLÓGICO
+        # STACK TECNOLÓGICO CON ENLACES
         # ==========================================
         st.markdown("""
         <hr style="margin: 10px 0 15px 0; border-top: 1px solid #E6E9EF;">
@@ -197,7 +197,7 @@ with col_main:
         with tab_en: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.<br><br>Large organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.<br><br>This paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a <strong>simulation of a terrorist financing network</strong> based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).<br><br>A structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 5. SIMULADOR Y TABLAS (Carga automática)
+# 5. SIMULADOR Y TABLAS 
 # ==========================================
 st.markdown("---")
 st.markdown("## 🔬 Simulador de Inteligencia Operativa")
@@ -231,7 +231,6 @@ def aplicar_estilos(df):
             
     return styler
 
-# Lógica de selección del archivo (Subido por el usuario vs Por defecto)
 wb = None
 if archivo_subido is not None:
     wb = load_workbook(archivo_subido, data_only=True)
@@ -377,18 +376,6 @@ if wb is not None:
         st.metric("Total Nodos Activos", len(G.nodes))
         st.metric("Total Rutas Activas", len(G.edges))
         
-        # =========================================================
-        # NUEVO: MATRIZ DE ADYACENCIA
-        # =========================================================
-        with st.expander("🔢 Matriz de Adyacencia"):
-            if len(G.nodes) > 0:
-                # Convertimos el grafo en un DataFrame de pandas
-                matriz_adyacencia = nx.to_pandas_adjacency(G, dtype=int)
-                st.dataframe(matriz_adyacencia, use_container_width=True)
-            else:
-                st.info("La red está vacía. No hay matriz disponible.")
-        # =========================================================
-
         st.markdown("### Mapa de Calor (Exposición)")
         
         st.markdown("""
@@ -402,3 +389,17 @@ if wb is not None:
         
         st.write("")
         st.info("💡 Modifica las tablas superiores para recalcular.")
+
+    # =========================================================
+    # MATRIZ DE ADYACENCIA (Ocupando ancho completo bajo el grafo)
+    # =========================================================
+    st.markdown("---")
+    with st.expander("🔢 Matriz de Adyacencia (Representación Matemática)"):
+        if len(G.nodes) > 0:
+            # Convertimos el grafo en un DataFrame de pandas
+            matriz_adyacencia = nx.to_pandas_adjacency(G, dtype=int)
+            # Reemplazamos los ceros por celdas vacías para mejorar la legibilidad visual
+            matriz_vacia = matriz_adyacencia.replace(0, "")
+            st.dataframe(matriz_vacia, use_container_width=True)
+        else:
+            st.info("La red está vacía. No hay matriz disponible.")
