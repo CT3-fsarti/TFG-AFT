@@ -21,8 +21,17 @@ st.markdown("""
     .header-style { background-color: #F8F9FB; padding: 25px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #E6E9EF; }
     .centered-text { text-align: center; }
     .language-block { display: flex; align-items: center; margin-bottom: 15px; }
-    .flag-img { width: 35px; height: 25px; object-fit: contain; margin-right: 15px; }
-    .title-text { font-size: 18px; color: #111; line-height: 1.4; }
+    
+    /* BANDERAS: Tamaño fijo y object-fit para unificar resoluciones */
+    .flag-img { 
+        width: 45px !important; 
+        height: 30px !important; 
+        object-fit: cover !important; 
+        margin-right: 15px; 
+        border: 1px solid #ddd;
+    }
+    
+    .title-text { font-size: 16px; color: #111; line-height: 1.4; }
     .profile-photo {
         width: 160px; height: 160px; border-radius: 50% !important; 
         object-fit: cover !important; display: block;
@@ -38,9 +47,8 @@ def get_base64_of_bin_file(bin_file):
 
 assets_status = {
     "Combined Logo B64": get_base64_of_bin_file("Logo_uc3m_PSL.png"),
-    "Flag ES B64": get_base64_of_bin_file("logo_spa.jpg"),
     "Flag GB B64": get_base64_of_bin_file("logo_GB.png"),
-    "Flag FR B64": get_base64_of_bin_file("logo_FR.jpg"),
+    "Flag FR B64": get_base64_of_bin_file("logo_FR.png"), # Actualizado a .png
     "Marina Photo B64": get_base64_of_bin_file("marina_circular.png")
 }
 
@@ -62,26 +70,52 @@ with col_profile:
         with clcol: st.markdown('[🔗 Perfil de LinkedIn](https://www.linkedin.com/in/marina-sarti-pineda-27211b29b/?originalSubdomain=es)', unsafe_allow_html=True)
 
 with col_main:
-    col_logo, col_titles = st.columns([1, 2.5])
+    # NUEVO ENCABEZADO BASADO EN LA IMAGEN d490dc.png
+    col_logo, col_titles = st.columns([1.2, 2.5])
     with col_logo:
         if assets_status["Combined Logo B64"]:
-             st.markdown(f"""<img src='data:image/png;base64,{assets_status["Combined Logo B64"]}' style='width: 100%; height: auto;' />""", unsafe_allow_html=True)
+             st.markdown(f"""<img src='data:image/png;base64,{assets_status["Combined Logo B64"]}' style='width: 100%; height: auto; margin-top: 5px;' />""", unsafe_allow_html=True)
     with col_titles:
         st.markdown("""
-        <div style="text-align: center; padding-top: 15px;">
-            <h1 style="color: #005691; margin-bottom: 5px; font-weight: bold; font-size: 32px;">Doble Titulación Internacional en Economía</h1>
-            <h4 style="color: #9AA6B8; font-style: italic; font-weight: normal; font-size: 20px;">Marina Sarti Pineda</h4>
+        <div style="text-align: left; padding-top: 5px;">
+            <div style="font-size: 19px; color: #005691; margin-bottom: 8px;">
+                <span style="font-style: italic;">Trabajo Fin de Grado - </span><strong>Doble Titulación Internacional en Economía.</strong>
+            </div>
+            <div style="color: #333; font-style: italic; font-size: 17px; line-height: 1.4;">
+                Redes de Financiación del Terrorismo:<br>
+                Simulación y análisis mediante Economía de Redes y Teoría de Juegos
+            </div>
         </div>
         """, unsafe_allow_html=True)
-    st.markdown("---")
+        
+    st.markdown("<hr style='margin-top: 15px; margin-bottom: 20px; border-top: 1.5px solid #111;'>", unsafe_allow_html=True)
     
-    # Banderas
-    if assets_status["Flag ES B64"]: st.markdown(f"""<div class="language-block"><img src="data:image/jpeg;base64,{assets_status['Flag ES B64']}" class="flag-img" /><div class="title-text"><strong>Redes de Financiación del Terrorismo:<br>Simulación y análisis mediante Economía de Redes y Teoría de Juegos</strong></div></div>""", unsafe_allow_html=True)
-    if assets_status["Flag FR B64"]: st.markdown(f"""<div class="language-block"><img src="data:image/jpeg;base64,{assets_status['Flag FR B64']}" class="flag-img" /><div class="title-text">Réseaux de Financement du Terrorisme:<br>Simulation et analyse à travers l'Économie des Réseaux et la Théorie des Jeux</div></div>""", unsafe_allow_html=True)
-    if assets_status["Flag GB B64"]: st.markdown(f"""<div class="language-block"><img src="data:image/png;base64,{assets_status['Flag GB B64']}" class="flag-img" /><div class="title-text">Terrorism Financing Networks:<br>Simulation and Analysis through Network Economics and Game Theory</div></div>""", unsafe_allow_html=True)
-    st.markdown("---")
+    # Banderas FR y GB
+    if assets_status["Flag FR B64"]: 
+        st.markdown(f"""
+        <div class="language-block">
+            <img src="data:image/png;base64,{assets_status['Flag FR B64']}" class="flag-img" />
+            <div class="title-text">
+                Réseaux de Financement du Terrorisme:<br>
+                Simulation et analyse à travers l'Économie des Réseaux et la Théorie des Jeux
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    if assets_status["Flag GB B64"]: 
+        st.markdown(f"""
+        <div class="language-block">
+            <img src="data:image/png;base64,{assets_status['Flag GB B64']}" class="flag-img" />
+            <div class="title-text">
+                Terrorism Financing Networks:<br>
+                Simulation and Analysis through Network Economics and Game Theory
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    st.markdown("<hr style='margin-top: 15px; margin-bottom: 25px; border-top: 1.5px solid #111;'>", unsafe_allow_html=True)
 
-    # Abstract
+    # Abstract original
     st.markdown("## 🎓 Sinopsis del Proyecto")
     with st.expander("🇪🇸 🇬🇧 🇫🇷 Leer Sinopsis / Abstract Completo", expanded=True):
         tab_es, tab_en, tab_fr = st.tabs(["🇪🇸 Español", "🇬🇧 English", "🇫🇷 Français"])
