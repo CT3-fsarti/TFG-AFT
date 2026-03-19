@@ -259,4 +259,113 @@ if wb is not None:
     enlaces_activos = df_enlaces[df_enlaces['Activo'] == 1]
 
     G = nx.DiGraph()
-    colores_capa = {'O': '#FF9999', '
+    colores_capa = {'O': '#FF9999', 'I': '#99CCFF', 'G': '#FFCC99', 'D': '#99FF99'}
+
+    for _, row in nodos_activos.iterrows():
+        tipo_nodo = str(row['Tipo']).strip()
+        nombre_nodo = str(row.get('Nombre', ''))
+        G.add_node(str(row['NodoID']).strip(), label=str(row['NodoID']).strip() + (" - " + nombre_nodo if nombre_nodo else ""), color=colores_capa.get(tipo_nodo, '#CCCCCC'), level=int(row['Capa']), title=f"Tipo: {str(row.get('Descripción', tipo_nodo))}")
+
+    for _, row in enlaces_activos.iterrows():
+        origen = str(row['Nodo Origen']).strip()
+        destino = str(row['Nodo Destino']).strip()
+        if origen in G.nodes and destino in G.nodes:
+            exposicion = str(row.get('Exposición', '')).strip().lower()
+            if 'medio-alto' in exposicion: color_flecha = '#90EE90'
+            elif 'medio-bajo' in exposicion: color_flecha = '#FFB84D'
+            elif 'alto' in exposicion: color_flecha = '#008000'
+            elif 'medio' in exposicion: color_flecha = '#FFD700'
+            elif 'bajo' in exposicion: color_flecha = '#FF4444'
+            else: color_flecha = '#999999'
+            G.add_edge(origen, destino, color=color_flecha, title=f"Exposición: {row.get('Exposición', 'N/A')} | Coste: {row.get('Coste', 'N/A')}")
+
+    if not nodos_activos.empty:
+        num_capas = nodos_activos['Capa'].nunique()
+        max_nodos_por_capa = nodos_activos['Capa'].value_counts().max()
+    else:
+        num_capas = 1
+        max_nodos_por_capa = 1
+        
+    ANCHO_CONTENEDOR = 1440
+    ALTO_CONTENEDOR = 650
+    
+    huecos_horizontales = num_capas - 1 if num_capas > 1 else 1
+    sep_horizontal = int((ANCHO_CONTENEDOR - 200) / huecos_horizontales)
+    sep_vertical = int((ALTO_CONTENEDOR - 120) / max_nodos_por_capa)
+
+    sep_horizontal = max(sep_horizontal, 250)
+    sep_vertical = max(sep_vertical, 60)
+
+    net = Network(height="650px", width="100%", directed=True, bgcolor="#ffffff", font_color="black")
+    net.from_nx(G)
+    
+    net.set_options(f"""
+    {{
+      "layout": {{
+        "hierarchical": {{
+          "enabled": true,
+          "direction": "LR",
+          "sortMethod": "directed",
+          "levelSeparation": {sep_horizontal},
+          "nodeDistance": {sep_vertical},
+          "treeSpacing": {sep_vertical},
+          "blockShifting": false,
+          "edgeMinimization": false,
+          "parentCentralization": true
+        }}
+      }},
+      "physics": {{
+        "enabled": false
+      }},
+      "edges": {{
+        "smooth": {{
+          "type": "cubicBezier",
+          "forceDirection": "horizontal",
+          "roundness": 0.4
+        }},
+        "arrows": {{
+          "to": {{ "enabled": true, "scaleFactor": 0.5 }}
+        }}
+      }},
+      "nodes": {{
+        "font": {{
+            "size": 16,
+            "face": "Arial"
+        }}
+      }},
+      "interaction": {{
+        "zoomView": true,
+        "dragNodes": true,
+        "hover": true
+      }}
+    }}
+    """)
+
+    ruta_html = "mapa_interactivo.html"
+    net.save_graph(ruta_html)
+    with open(ruta_html, 'r', encoding='utf-8') as f:
+        codigo_html = f.read()
+
+    st.markdown("---")
+    gcol1, gcol2 = st.columns([4, 1])
+    with gcol1:
+        st.subheader("🌐 Topología Interactiva de la Red")
+        components.html(codigo_html, height=670)
+
+    with gcol2:
+        st.subheader("📊 Análisis")
+        st.metric("Total Nodos Activos", len(G.nodes))
+        st.metric("Total Rutas Activas", len(G.edges))
+        st.markdown("### Mapa de Calor (Exposición)")
+        
+        st.markdown("""
+        <div style="line-height: 2; font-size: 15px;">
+            🔴 <strong>Bajo:</strong> Canal opaco<br>
+            🟠 <strong>Medio-Bajo:</strong> Riesgo latente<br>
+            🟡 <strong>Medio:</strong> Neutro<br>
+            🟢 <strong>Medio-Alto / Alto:</strong> Canal expuesto (Fricción)
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.write("")
+        st.info("💡 Modifica las tablas superiores para recalcular.")
