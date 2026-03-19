@@ -80,8 +80,19 @@ with col_profile:
         st.markdown("### 👤 Perfil de la Autora")
         if assets_status["Marina Photo B64"]:
              st.markdown(f"""<div style="margin-bottom: 15px;"><img src='data:image/png;base64,{assets_status["Marina Photo B64"]}' class='profile-photo' /></div>""", unsafe_allow_html=True)
-        st.markdown(f"<p class='centered-text' style='font-size: 18px;'><strong>Marina Sarti Pineda</strong></p>", unsafe_allow_html=True)
-        st.markdown("""<div style="font-size: 15px; line-height: 1.5; color: #333; text-align: justify;">Graduada en Economía por la Universidad Carlos III de Madrid y París Dauphine, Marina combina el rigor analítico macroeconómico con una vocación por la seguridad global y la inteligencia financiera. Su TFG pionero en Modelado Estructurado de Financiación del Terrorismo se desarrolló en el marco de las tipologías del GAFI.</div>""", unsafe_allow_html=True)
+        st.markdown(f"<p class='centered-text' style='font-size: 18px; margin-bottom: 15px;'><strong>Marina Sarti Pineda</strong></p>", unsafe_allow_html=True)
+        
+        # Biografía multilingüe actualizada
+        st.markdown("""
+        <div style="font-size: 14px; line-height: 1.5; color: #333; text-align: justify;">
+            <p style="margin-bottom: 8px;">🇪🇸 Graduada en Economía por la <strong>Universidad Carlos III de Madrid y París Dauphine (DTI)</strong>, Marina combina el rigor analítico macroeconómico con una vocación por la seguridad global, la inteligencia financiera y la tecnología.<br><br>Su TFG pionero en Modelado Estructurado de Financiación del Terrorismo se desarrolló en el marco de las tipologías del GAFI.</p>
+            <hr style="margin: 12px 0; border-top: 1px solid #eee;">
+            <p style="margin-bottom: 8px;">🇬🇧 Graduated in Economics from <strong>Universidad Carlos III de Madrid and Paris Dauphine (DTI)</strong>, Marina combines macroeconomic analytical rigor with a vocation for global security, financial intelligence, and technology.<br><br>Her pioneering Bachelor's Thesis in Structured Modeling of Terrorism Financing was developed within the framework of FATF typologies.</p>
+            <hr style="margin: 12px 0; border-top: 1px solid #eee;">
+            <p>🇫🇷 Diplômée en Économie de l'<strong>Universidad Carlos III de Madrid et Paris Dauphine (DTI)</strong>, Marina allie la rigueur analytique macroéconomique à une vocation pour la sécurité mondiale, le renseignement financier et la technologie.<br><br>Son mémoire de fin d'études pionnier sur la Modélisation Structurée du Financement du Terrorisme a été développé dans le cadre des typologies du GAFI.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
         st.write("") 
         _, clcol, _ = st.columns([1, 2, 1])
         with clcol: st.markdown('[🔗 Perfil de LinkedIn](https://www.linkedin.com/in/marina-sarti-pineda-27211b29b/?originalSubdomain=es)', unsafe_allow_html=True)
