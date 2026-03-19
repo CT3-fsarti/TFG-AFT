@@ -114,6 +114,8 @@ with col_profile:
             <a href="https://pandas.pydata.org/" target="_blank" style="text-decoration: none; background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">Pandas (Excel)</a>
             <a href="https://streamlit.io/" target="_blank" style="text-decoration: none; background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">Streamlit</a>
             <a href="https://pyvis.readthedocs.io/" target="_blank" style="text-decoration: none; background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">PyVis</a>
+            <a href="https://gemini.google.com/" target="_blank" style="text-decoration: none; background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">Gemini</a>
+            <a href="https://github.com/features/copilot" target="_blank" style="text-decoration: none; background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">Copilot</a>
         </div>
         """, unsafe_allow_html=True)
         
@@ -175,6 +177,7 @@ with col_main:
     st.markdown("## 🎓 Sinopsis del Proyecto")
     with st.expander("Leer Sinopsis / Abstract Completo", expanded=True):
         tab_fr, tab_es, tab_en = st.tabs(["Français", "Español", "English"])
+        
         with tab_fr: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Le Financement du Terrorisme (FT) consiste en la collecte de fonds, ce qui englobe le processus de sollicitation, de rassemblement, de fourniture et de mise à disposition d'argent ou d'actifs dans le but de faciliter la capacité à mener des activités terroristes. En Espagne, la loi 10/2010 établit un cadre rigoureux contre la fourniture ou la distribution de fonds.<br><br>Les grands groupes organisés, les petites cellules et les acteurs individuels ont besoin d'argent pour développer leurs activités terroristes. La littérature académique s'accorde à dire que le manque de fonds limite considérablement leur capacité opérationnelle, le FT étant un élément structurant du terrorisme mondial.<br><br>Ce travail fonde son analyse sur des informations récentes, en utilisant des exemples représentatifs des dynamiques contemporaines. L'objectif principal est de construire une <strong>simulation d'un réseau de financement du terrorisme</strong> basée sur les preuves recueillies dans la littérature spécialisée (typologies du GAFI, ABE, etc.).<br><br>Une analyse structurelle est réalisée sur cette simulation à l'aide de l'Économie des Réseaux et de la Théorie des Jeux, incluant l'étude des métriques de centralité, l'importance des nœuds clés (points d'étranglement) et la résilience du système face aux interventions policières. Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.</div>""", unsafe_allow_html=True)
         with tab_es: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">La Financiación del Terrorismo (FT) consiste en la captación de fondos, lo cual abarca el proceso de solicitud, recaudación, provisión y puesta a disposición de dinero o activos con el fin de facilitar o potenciar la capacidad de cualquier persona u organización para llevar a cabo actividades relacionadas con el terrorismo. En el caso concreto de España, la Ley 10/2010 establece un marco riguroso frente al suministro, depósito o distribución de fondos.<br><br>Tanto los grandes grupos organizados como las pequeñas células e incluso los actores individuales necesitan dinero para el desarrollo de la actividad terrorista. La literatura académica y los informes institucionales coinciden en que la falta de fondos limita drásticamente su capacidad operativa, siendo la FT un elemento vertebrador del terrorismo global.<br><br>Este trabajo fundamenta su análisis en información reciente, utilizando ejemplos observados en los últimos años que resultan representativos de las dinámicas contemporáneas. El objetivo principal consiste en construir una <strong>simulación de red de financiación del terrorismo</strong> basada en la evidencia recogida en la literatura especializada (tipologías del GAFI, EBA, etc.).<br><br>Sobre dicha simulación se realiza un análisis estructural mediante herramientas propias del análisis de redes (Economía de Redes) y la Teoría de Juegos, incluyendo el estudio de métricas de centralidad, la importancia relativa de los nodos clave (chokepoints) y la resiliencia del sistema ante intervenciones policiales. El modelo resultante constituye una representación realista y fundamentada empíricamente, derivando en un modelo analítico altamente útil para la inteligencia financiera y el diseño de políticas de seguridad.</div>""", unsafe_allow_html=True)
         with tab_en: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.<br><br>Large organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.<br><br>This paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a <strong>simulation of a terrorist financing network</strong> based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).<br><br>A structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>""", unsafe_allow_html=True)
@@ -190,7 +193,7 @@ def leer_tabla_excel(wb, nombre_tabla_buscada):
             datos_celdas = hoja[rango]
             filas = [[celda.value for celda in fila] for fila in datos_celdas]
             return pd.DataFrame(filas[1:], columns=filas[0])
-    return pd.DataFrame() # Devuelve vacío si no encuentra la tabla para no romper la app
+    return pd.DataFrame() 
 
 def aplicar_estilos(df):
     styler = df.style.set_properties(**{'text-align': 'center'})
@@ -228,7 +231,11 @@ if wb is not None:
     df_nodos_original = leer_tabla_excel(wb, "tblNodos")
     df_enlaces_original = leer_tabla_excel(wb, "tblEnlaces")
     df_pesos = leer_tabla_excel(wb, "tblPesos")
-    df_ponderada_excel = leer_tabla_excel(wb, "tblMatrizPonderada")
+    
+    # NUEVAS MATRICES PONDERADAS
+    df_pond_costes = leer_tabla_excel(wb, "tblMatrizPonderadaCostes")
+    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValoroperativo")
+    df_tradeoff = leer_tabla_excel(wb, "tblMatrizTradeOff")
 
     # ==========================================
     # FASE 1: BASE DE DATOS Y PARAMETRIZACIÓN
@@ -347,9 +354,13 @@ if wb is not None:
     st.markdown("## 🔢 Fase 3: Modelado Matemático (Teoría de Grafos)")
     st.markdown("Traducción algebraica de la topología superior para el cálculo de equilibrio y cuellos de botella.")
 
-    # Cambio: expanded=True para que cargue abierto.
     with st.expander("Matrices Matemáticas del Sistema (Teoría de Grafos)", expanded=True):
-        tab_matriz1, tab_matriz2 = st.tabs(["1️⃣ Matriz de Adyacencia (Topológica)", "2️⃣ Matriz Ponderada (Fricción)"])
+        tab_matriz1, tab_matriz2, tab_matriz3, tab_matriz4 = st.tabs([
+            "1️⃣ Adyacencia (Topológica)", 
+            "2️⃣ Costes (Fricción)", 
+            "3️⃣ Valor Operativo (Flujo)", 
+            "4️⃣ Trade-Off (Equilibrio)"
+        ])
 
         with tab_matriz1:
             st.markdown("**Matriz Binaria:** Representa la existencia de rutas (1 = conectado). Es la base estructural para calcular la centralidad de grado.")
@@ -361,13 +372,28 @@ if wb is not None:
                 st.info("La red está vacía.")
 
         with tab_matriz2:
-            st.markdown("**Matriz Ponderada:** Refleja la fricción o capacidad de los canales basándose en los parámetros de la tabla 'tblPonderada' de Excel.")
-            if not df_ponderada_excel.empty:
-                # Ponemos el índice de la matriz ponderada basándonos en la primera columna
-                df_ponderada_excel.set_index(df_ponderada_excel.columns[0], inplace=True)
-                # Reemplazamos los ceros (o vacíos) para limpiarla visualmente
-                matriz_pond_limpia = df_ponderada_excel.replace(0, "")
-                matriz_pond_limpia = matriz_pond_limpia.fillna("")
-                st.dataframe(matriz_pond_limpia, use_container_width=True)
+            st.markdown("**Matriz Ponderada de Costes:** Refleja la fricción, exposición o coste intrínseco de utilizar cada canal para el movimiento de fondos.")
+            if not df_pond_costes.empty:
+                df_pond_costes.set_index(df_pond_costes.columns[0], inplace=True)
+                matriz_costes_limpia = df_pond_costes.replace(0, "").fillna("")
+                st.dataframe(matriz_costes_limpia, use_container_width=True)
             else:
-                st.warning("No se ha encontrado la tabla 'tblPonderada' en el archivo Excel.")
+                st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaCostes' en el archivo Excel.")
+
+        with tab_matriz3:
+            st.markdown("**Matriz Ponderada de Valor Operativo:** Refleja la capacidad, eficiencia o volumen del flujo que permite mover cada canal financiero.")
+            if not df_pond_valor.empty:
+                df_pond_valor.set_index(df_pond_valor.columns[0], inplace=True)
+                matriz_valor_limpia = df_pond_valor.replace(0, "").fillna("")
+                st.dataframe(matriz_valor_limpia, use_container_width=True)
+            else:
+                st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaValoroperativo' en el archivo Excel.")
+                
+        with tab_matriz4:
+            st.markdown("**Matriz Trade-Off:** Matriz combinada que evalúa la relación coste-beneficio para identificar los canales óptimos y las decisiones racionales de los actores (Equilibrio de Nash).")
+            if not df_tradeoff.empty:
+                df_tradeoff.set_index(df_tradeoff.columns[0], inplace=True)
+                matriz_trade_limpia = df_tradeoff.replace(0, "").fillna("")
+                st.dataframe(matriz_trade_limpia, use_container_width=True)
+            else:
+                st.warning("No se ha encontrado la tabla 'tblMatrizTradeOff' en el archivo Excel.")
