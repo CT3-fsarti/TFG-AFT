@@ -25,6 +25,7 @@ st.markdown("""
         padding-bottom: 5px !important;
         font-weight: 600 !important;
     }
+    /* Estilo base para h3 nativos, pero permitimos que raw html lo sobrescriba para centrar */
     .stMarkdown h3 {
         font-size: 18px !important;
         color: #333 !important;
@@ -33,7 +34,10 @@ st.markdown("""
     
     .big-font { font-size:16px !important; color: #31333F; }
     .header-style { background-color: #F8F9FB; padding: 25px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #E6E9EF; }
+    
+    /* Clase de centrado general */
     .centered-text { text-align: center; }
+    
     .language-block { display: flex; align-items: flex-start; margin-bottom: 18px; }
     
     /* BANDERAS NORMALIZADAS (TAMAÑO MEDIO PARA EL ENCABEZADO) */
@@ -95,20 +99,38 @@ col_main, col_profile = st.columns([3, 1])
 with col_profile:
     st.markdown("""<div style="margin-top: 30px;"></div>""", unsafe_allow_html=True)
     with st.container():
-        st.markdown("### 👤 Perfil de la Autora")
+        st.markdown("<h3 class='centered-text'>👤 Perfil de la Autora</h3>", unsafe_allow_html=True)
+        
         if assets_status["Marina Photo B64"]:
              st.markdown(f"""<div style="margin-bottom: 15px;"><img src='data:image/png;base64,{assets_status["Marina Photo B64"]}' class='profile-photo' /></div>""", unsafe_allow_html=True)
         
         # Nombre con margen reducido
         st.markdown(f"<p class='centered-text' style='font-size: 18px; margin-bottom: 5px;'><strong>Marina Sarti Pineda</strong></p>", unsafe_allow_html=True)
         
-        # Enlace de LinkedIn debajo del nombre
+        # Enlace de LinkedIn
         st.markdown("""
         <div style="text-align: center; margin-bottom: 15px;">
             <a href="https://www.linkedin.com/in/marina-sarti-pineda-27211b29b/?originalSubdomain=es" target="_blank" style="text-decoration: none; font-size: 14px; color: #005691;">🔗 Perfil de LinkedIn</a>
         </div>
         """, unsafe_allow_html=True)
         
+        # ==========================================
+        # STACK TECNOLÓGICO
+        # ==========================================
+        st.markdown("""
+        <hr style="margin: 10px 0 15px 0; border-top: 1px solid #E6E9EF;">
+        <p class='centered-text' style='font-size: 15px; color: #333; margin-bottom: 10px;'><strong>🛠️ Stack Tecnológico</strong></p>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 20px;">
+            <span style="background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">Python</span>
+            <span style="background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">NetworkX</span>
+            <span style="background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">Pandas</span>
+            <span style="background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">Streamlit</span>
+            <span style="background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">PyVis</span>
+            <span style="background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">HTML / CSS</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Biografía multilingüe
         st.markdown(f"""
         <div style="font-size: 14px; line-height: 1.5; color: #333; text-align: justify;">
             <p style="margin-bottom: 8px;">{html_flag_es} Graduada en Economía por la <strong>Universidad Carlos III de Madrid y París Dauphine (DTI)</strong>, Marina combina el rigor analítico macroeconómico con una vocación por la seguridad global, la inteligencia financiera y la tecnología.<br><br>Su TFG pionero en Modelado Estructurado de Financiación del Terrorismo se desarrolló en el marco de las tipologías del GAFI.</p>
@@ -165,7 +187,7 @@ with col_main:
         
     st.markdown("<hr style='margin-top: 15px; margin-bottom: 25px; border-top: 1px solid #111;'>", unsafe_allow_html=True)
 
-    # 4. SINOPSIS DEL PROYECTO (Orden de pestañas ajustado a Francés primero para que abra por defecto)
+    # 4. SINOPSIS DEL PROYECTO
     st.markdown("## 🎓 Sinopsis del Proyecto")
     with st.expander("Leer Sinopsis / Abstract Completo", expanded=True):
         tab_fr, tab_es, tab_en = st.tabs(["Français", "Español", "English"])
