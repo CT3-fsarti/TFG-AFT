@@ -100,7 +100,7 @@ with col_profile:
         
         st.markdown("""
         <div style="text-align: center; margin-bottom: 15px;">
-            <a href="https://www.linkedin.com/in/marina-sarti-pineda-27211b29b/" target="_blank" style="text-decoration: none; font-size: 14px; color: #005691;">🔗 Perfil de LinkedIn</a>
+            <a href="https://www.linkedin.com/in/marina-sarti-pineda-27211b29b/?originalSubdomain=es" target="_blank" style="text-decoration: none; font-size: 14px; color: #005691;">🔗 Perfil de LinkedIn</a>
         </div>
         """, unsafe_allow_html=True)
         
@@ -177,6 +177,7 @@ with col_main:
     st.markdown("## 🎓 Sinopsis del Proyecto")
     with st.expander("Leer Sinopsis / Abstract Completo", expanded=True):
         tab_fr, tab_es, tab_en = st.tabs(["Français", "Español", "English"])
+        
         with tab_fr: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Le Financement du Terrorisme (FT) consiste en la collecte de fonds, ce qui englobe le processus de sollicitation, de rassemblement, de fourniture et de mise à disposition d'argent ou d'actifs dans le but de faciliter la capacité à mener des activités terroristes. En Espagne, la loi 10/2010 établit un cadre rigoureux contre la fourniture ou la distribution de fonds.<br><br>Les grands groupes organisés, les petites cellules et les acteurs individuels ont besoin d'argent pour développer leurs activités terroristes. La littérature académique s'accorde à dire que le manque de fonds limite considérablement leur capacité opérationnelle, le FT étant un élément structurant du terrorisme mondial.<br><br>Ce travail fonde son analyse sur des informations récentes, en utilisant des exemples représentatifs des dynamiques contemporaines. L'objectif principal est de construire une <strong>simulation d'un réseau de financement du terrorisme</strong> basée sur les preuves recueillies dans la littérature spécialisée (typologies du GAFI, ABE, etc.).<br><br>Une analyse structurelle est réalisée sur cette simulation à l'aide de l'Économie des Réseaux et de la Théorie des Jeux, incluant l'étude des métriques de centralité, l'importance des nœuds clés (points d'étranglement) et la résilience du système face aux interventions policières. Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.</div>""", unsafe_allow_html=True)
         with tab_es: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">La Financiación del Terrorismo (FT) consiste en la captación de fondos, lo cual abarca el proceso de solicitud, recaudación, provisión y puesta a disposición de dinero o activos con el fin de facilitar o potenciar la capacidad de cualquier persona u organización para llevar a cabo actividades relacionadas con el terrorismo. En el caso concreto de España, la Ley 10/2010 establece un marco riguroso frente al suministro, depósito o distribución de fondos.<br><br>Tanto los grandes grupos organizados como las pequeñas células e incluso los actores individuales necesitan dinero para el desarrollo de la actividad terrorista. La literatura académica y los informes institucionales coinciden en que la falta de fondos limita drásticamente su capacidad operativa, siendo la FT un elemento vertebrador del terrorismo global.<br><br>Este trabajo fundamenta su análisis en información reciente, utilizando ejemplos observados en los últimos años que resultan representativos de las dinámicas contemporáneas. El objetivo principal consiste en construir una <strong>simulación de red de financiación del terrorismo</strong> basada en la evidencia recogida en la literatura especializada (tipologías del GAFI, EBA, etc.).<br><br>Sobre dicha simulación se realiza un análisis estructural mediante herramientas propias del análisis de redes (Economía de Redes) y la Teoría de Juegos, incluyendo el estudio de métricas de centralidad, la importancia relativa de los nodos clave (chokepoints) y la resiliencia del sistema ante intervenciones policiales. El modelo resultante constituye una representación realista y fundamentada empíricamente, derivando en un modelo analítico altamente útil para la inteligencia financiera y el diseño de políticas de seguridad.</div>""", unsafe_allow_html=True)
         with tab_en: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.<br><br>Large organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.<br><br>This paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a <strong>simulation of a terrorist financing network</strong> based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).<br><br>A structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>""", unsafe_allow_html=True)
@@ -238,7 +239,11 @@ if wb is not None:
     with tab_sim4: st.dataframe(aplicar_estilos_base(df_pesos), use_container_width=True, hide_index=True)
 
     # Procesamiento Grafo Estándar
-    n_ok = df_n_ed[pd.to_numeric(df_n_ed['Activo'], errors='coerce') == 1]
+    # ¡AQUÍ ESTÁ LA CORRECCIÓN CLAVE!: Hacemos el MERGE de Nodos con Tipos para recuperar la 'Capa'
+    df_n_merged = pd.merge(df_n_ed, df_tipos[['Tipo', 'Capa']], on='Tipo', how='left')
+    df_n_merged['Capa'] = pd.to_numeric(df_n_merged['Capa'], errors='coerce').fillna(0)
+
+    n_ok = df_n_merged[pd.to_numeric(df_n_merged['Activo'], errors='coerce') == 1]
     e_ok = df_e_ed[pd.to_numeric(df_e_ed['Activo'], errors='coerce') == 1]
     
     colores_capa = {'O':'#FF9999','I':'#99CCFF','G':'#FFCC99','D':'#99FF99'}
@@ -246,7 +251,8 @@ if wb is not None:
     G = nx.DiGraph()
     for _, r in n_ok.iterrows():
         tipo = str(r['Tipo']).strip()
-        G.add_node(str(r['NodoID']), label=f"{r['NodoID']} - {r.get('Nombre','')}", color=colores_capa.get(tipo,'#CCC'), level=int(r.get('Capa',0)))
+        # Ahora r['Capa'] existe correctamente gracias al merge
+        G.add_node(str(r['NodoID']), label=f"{r['NodoID']} - {r.get('Nombre','')}", color=colores_capa.get(tipo,'#CCC'), level=int(r['Capa']))
         
     for _, r in e_ok.iterrows():
         origen, destino = str(r['Nodo Origen']), str(r['Nodo Destino'])
@@ -264,7 +270,7 @@ if wb is not None:
     G_to = nx.DiGraph()
     for _, r in n_ok.iterrows():
         tipo = str(r['Tipo']).strip()
-        G_to.add_node(str(r['NodoID']), label=f"{r['NodoID']} - {r.get('Nombre','')}", color=colores_capa.get(tipo,'#CCC'), level=int(r.get('Capa',0)))
+        G_to.add_node(str(r['NodoID']), label=f"{r['NodoID']} - {r.get('Nombre','')}", color=colores_capa.get(tipo,'#CCC'), level=int(r['Capa']))
     
     # Calcular umbrales de percentil para el Trade-Off
     threshold_high, threshold_med = 0, 0
@@ -300,6 +306,7 @@ if wb is not None:
 
     # Layout params
     if not n_ok.empty:
+        # Aquí también usamos n_ok['Capa'] con total seguridad
         num_capas = pd.to_numeric(n_ok['Capa'], errors='coerce').nunique()
         max_nodos = pd.to_numeric(n_ok['Capa'], errors='coerce').value_counts().max()
     else: num_capas, max_nodos = 1, 1
