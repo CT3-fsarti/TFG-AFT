@@ -20,18 +20,19 @@ st.markdown("""
     .big-font { font-size:16px !important; color: #31333F; }
     .header-style { background-color: #F8F9FB; padding: 25px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #E6E9EF; }
     .centered-text { text-align: center; }
-    .language-block { display: flex; align-items: center; margin-bottom: 15px; }
+    .language-block { display: flex; align-items: flex-start; margin-bottom: 18px; }
     
-    /* BANDERAS: Tamaño fijo y object-fit para unificar resoluciones */
+    /* BANDERAS NORMALIZADAS: Tamaño fijo y object-fit para unificar resoluciones */
     .flag-img { 
-        width: 45px !important; 
-        height: 30px !important; 
+        width: 40px !important; 
+        height: 26px !important; 
         object-fit: cover !important; 
         margin-right: 15px; 
+        margin-top: 4px;
         border: 1px solid #ddd;
     }
     
-    .title-text { font-size: 16px; color: #111; line-height: 1.4; }
+    .title-text { font-size: 17px; color: #111; line-height: 1.5; }
     .profile-photo {
         width: 160px; height: 160px; border-radius: 50% !important; 
         object-fit: cover !important; display: block;
@@ -48,7 +49,7 @@ def get_base64_of_bin_file(bin_file):
 assets_status = {
     "Combined Logo B64": get_base64_of_bin_file("Logo_uc3m_PSL.png"),
     "Flag GB B64": get_base64_of_bin_file("logo_GB.png"),
-    "Flag FR B64": get_base64_of_bin_file("logo_FR.png"), # Actualizado a .png
+    "Flag FR B64": get_base64_of_bin_file("logo_FR.png"),
     "Marina Photo B64": get_base64_of_bin_file("marina_circular.png")
 }
 
@@ -70,27 +71,28 @@ with col_profile:
         with clcol: st.markdown('[🔗 Perfil de LinkedIn](https://www.linkedin.com/in/marina-sarti-pineda-27211b29b/?originalSubdomain=es)', unsafe_allow_html=True)
 
 with col_main:
-    # NUEVO ENCABEZADO BASADO EN LA IMAGEN d490dc.png
-    col_logo, col_titles = st.columns([1.2, 2.5])
+    # 3. NUEVO ENCABEZADO INSTITUCIONAL
+    col_logo, col_titles = st.columns([1, 2.5])
     with col_logo:
         if assets_status["Combined Logo B64"]:
-             st.markdown(f"""<img src='data:image/png;base64,{assets_status["Combined Logo B64"]}' style='width: 100%; height: auto; margin-top: 5px;' />""", unsafe_allow_html=True)
+             st.markdown(f"""<img src='data:image/png;base64,{assets_status["Combined Logo B64"]}' style='width: 100%; height: auto; margin-top: 10px;' />""", unsafe_allow_html=True)
     with col_titles:
         st.markdown("""
-        <div style="text-align: left; padding-top: 5px;">
-            <div style="font-size: 19px; color: #005691; margin-bottom: 8px;">
-                <span style="font-style: italic;">Trabajo Fin de Grado - </span><strong>Doble Titulación Internacional en Economía.</strong>
+        <div style="text-align: left; padding-top: 10px;">
+            <div style="font-size: 17px; margin-bottom: 6px;">
+                <span style="font-style: italic; color: #333;">Trabajo Fin de Grado - </span>
+                <strong style="color: #005691;">Doble Titulación Internacional en Economía.</strong>
             </div>
-            <div style="color: #333; font-style: italic; font-size: 17px; line-height: 1.4;">
+            <div style="color: #333; font-style: italic; font-size: 16px; line-height: 1.4;">
                 Redes de Financiación del Terrorismo:<br>
                 Simulación y análisis mediante Economía de Redes y Teoría de Juegos
             </div>
         </div>
         """, unsafe_allow_html=True)
         
-    st.markdown("<hr style='margin-top: 15px; margin-bottom: 20px; border-top: 1.5px solid #111;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin-top: 15px; margin-bottom: 20px; border-top: 1px solid #111;'>", unsafe_allow_html=True)
     
-    # Banderas FR y GB
+    # BLOQUE DE BANDERAS FR Y GB (NORMALIZADAS)
     if assets_status["Flag FR B64"]: 
         st.markdown(f"""
         <div class="language-block">
@@ -113,18 +115,18 @@ with col_main:
         </div>
         """, unsafe_allow_html=True)
         
-    st.markdown("<hr style='margin-top: 15px; margin-bottom: 25px; border-top: 1.5px solid #111;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin-top: 20px; margin-bottom: 25px; border-top: 1px solid #111;'>", unsafe_allow_html=True)
 
-    # Abstract original
+    # 4. SINOPSIS DEL PROYECTO
     st.markdown("## 🎓 Sinopsis del Proyecto")
     with st.expander("🇪🇸 🇬🇧 🇫🇷 Leer Sinopsis / Abstract Completo", expanded=True):
         tab_es, tab_en, tab_fr = st.tabs(["🇪🇸 Español", "🇬🇧 English", "🇫🇷 Français"])
-        with tab_es: st.markdown("""La Financiación del Terrorismo (FT) consiste en la captación de fondos, lo cual abarca el proceso de solicitud, recaudación, provisión y puesta a disposición de dinero o activos con el fin de facilitar o potenciar la capacidad de cualquier persona u organización para llevar a cabo actividades relacionadas con el terrorismo. En el caso concreto de España, la Ley 10/2010 establece un marco riguroso frente al suministro, depósito o distribución de fondos.\n\nTanto los grandes grupos organizados como las pequeñas células e incluso los actores individuales necesitan dinero para el desarrollo de la actividad terrorista. La literatura académica y los informes institucionales coinciden en que la falta de fondos limita drásticamente su capacidad operativa, siendo la FT un elemento vertebrador del terrorismo global.\n\nEste trabajo fundamenta su análisis en información reciente, utilizando ejemplos observados en los últimos años que resultan representativos de las dinámicas contemporáneas. El objetivo principal consiste en construir una **simulación de red de financiación del terrorismo** basada en la evidencia recogida en la literatura especializada (tipologías del GAFI, EBA, etc.). \n\nSobre dicha simulación se realiza un análisis estructural mediante herramientas propias del análisis de redes (Economía de Redes) y la Teoría de Juegos, incluyendo el estudio de métricas de centralidad, la importancia relativa de los nodos clave (chokepoints) y la resiliencia del sistema ante intervenciones policiales. El modelo resultante constituye una representation realista y fundamentada empíricamente, derivando en un modelo analítico altamente útil para la inteligencia financiera y el diseño de políticas de seguridad.""")
+        with tab_es: st.markdown("""La Financiación del Terrorismo (FT) consiste en la captación de fondos, lo cual abarca el proceso de solicitud, recaudación, provisión y puesta a disposición de dinero o activos con el fin de facilitar o potenciar la capacidad de cualquier persona u organización para llevar a cabo actividades relacionadas con el terrorismo. En el caso concreto de España, la Ley 10/2010 establece un marco riguroso frente al suministro, depósito o distribución de fondos.\n\nTanto los grandes grupos organizados como las pequeñas células e incluso los actores individuales necesitan dinero para el desarrollo de la actividad terrorista. La literatura académica y los informes institucionales coinciden en que la falta de fondos limita drásticamente su capacidad operativa, siendo la FT un elemento vertebrador del terrorismo global.\n\nEste trabajo fundamenta su análisis en información reciente, utilizando ejemplos observados en los últimos años que resultan representativos de las dinámicas contemporáneas. El objetivo principal consiste en construir una **simulación de red de financiación del terrorismo** basada en la evidencia recogida en la literatura especializada (tipologías del GAFI, EBA, etc.). \n\nSobre dicha simulación se realiza un análisis estructural mediante herramientas propias del análisis de redes (Economía de Redes) y la Teoría de Juegos, incluyendo el estudio de métricas de centralidad, la importancia relativa de los nodos clave (chokepoints) y la resiliencia del sistema ante intervenciones policiales. El modelo resultante constituye una representación realista y fundamentada empíricamente, derivando en un modelo analítico altamente útil para la inteligencia financiera y el diseño de políticas de seguridad.""")
         with tab_en: st.markdown("""Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.\n\nLarge organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.\n\nThis paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a **simulation of a terrorist financing network** based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).\n\nA structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.""")
-        with tab_fr: st.markdown("""Le Financement du Terrorisme (FT) consiste en la collecte de fonds, ce qui englobe le processus de sollicitation, de rassemblement, de fourniture et de mise à disposition d'argent ou d'actifs dans le but de faciliter la capacité à mener des activités terroristes. En Espagne, la loi 10/2010 établit un cadre rigoureux contre la fourniture ou la distribution de fonds.\n\nLes grands groupes organisés, les petites cellules et les acteurs individuels ont besoin d'argent pour développer leurs activités terroristes. La littérature académique s'accorde à dire que le manque de fonds limite considérablement leur capacité opérationnelle, le FT siendo un élément structurant du terrorisme mondial.\n\nCe travail fonde son analyse sur des informations récentes, en utilisant des exemples représentatifs des dynamiques contemporaines. L'objectif principal est de construire une **simulation d'un réseau de financement du terrorisme** basée sur les preuves recueillies dans la littérature spécialisée (typologies du GAFI, ABE, etc.).\n\nUne analyse structurelle est réalisée sur cette simulation à l'aide de l'Économie des Réseaux et de la Théorie des Jeux, incluant l'étude des métriques de centralité, l'importance des nœuds clés (points d'étranglement) et la résilience du système face aux interventions policières. Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.""")
+        with tab_fr: st.markdown("""Le Financement du Terrorisme (FT) consiste en la collecte de fonds, ce qui englobe le processus de sollicitation, de rassemblement, de fourniture et de mise à disposition d'argent ou d'actifs dans le but de faciliter la capacité à mener des activités terroristes. En Espagne, la loi 10/2010 établit un cadre rigoureux contre la fourniture ou la distribution de fonds.\n\nLes grands groupes organisés, les petites cellules et les acteurs individuels ont besoin d'argent pour développer leurs activités terroristes. La littérature académique s'accorde à dire que le manque de fonds limite considérablement leur capacité opérationnelle, le FT siendo un élément structurant du terrorisme mondial.\n\nCe travail fonde son analyse sur des informations récentes, en utilisant des exemples représentatifs des dynamiques contemporaines. L'objectif principal est de construire une **simulation d'un réseau de financement du terrorisme** basada en pruebas recogidas en la literatura especializada (typologies du GAFI, ABE, etc.).\n\nUne analyse structurelle est réalisée sur cette simulation à l'aide de l'Économie des Réseaux et de la Théorie des Jeux, incluant l'étude des métriques de centralité, l'importance des nœuds clés (points d'étranglement) et la résilience du système face aux interventions policières. Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.""")
 
 # ==========================================
-# 3. SIMULADOR Y TABLAS
+# 5. SIMULADOR Y TABLAS
 # ==========================================
 st.markdown("---")
 st.markdown("## 🔬 Simulador de Inteligencia Operativa")
@@ -145,18 +147,17 @@ def aplicar_estilos(df):
     styler = df.style.set_properties(**{'text-align': 'center'})
     styler = styler.set_table_styles([dict(selector='th', props=[('text-align', 'center')])])
     
-    # 1. Sombreado de filas alternas (Zebra striping)
+    # Sombreado de filas alternas (Zebra striping)
     def zebra_stripe(data):
         df_styles = pd.DataFrame('', index=data.index, columns=data.columns)
         for i in range(len(data)):
             if i % 2 == 0:
-                # Fondo gris muy claro para las filas pares
                 df_styles.iloc[i] = 'background-color: #F4F6F9;' 
         return df_styles
         
     styler = styler.apply(zebra_stripe, axis=None)
     
-    # 2. Color condicional para la columna 'Activo'
+    # Color condicional para la columna 'Activo'
     if 'Activo' in df.columns:
         def color_activo(val):
             try:
@@ -245,16 +246,12 @@ if archivo_subido is not None:
     ALTO_CONTENEDOR = 650
     
     huecos_horizontales = num_capas - 1 if num_capas > 1 else 1
-    
-    # Restamos un poco más de margen por si los textos crecen
     sep_horizontal = int((ANCHO_CONTENEDOR - 200) / huecos_horizontales)
-    
     sep_vertical = int((ALTO_CONTENEDOR - 120) / max_nodos_por_capa)
 
     sep_horizontal = max(sep_horizontal, 250)
-    sep_vertical = max(sep_vertical, 60) # Un poco más de aire vertical para letras grandes
+    sep_vertical = max(sep_vertical, 60)
 
-    # 4. Inyección en PyVis nativo con TAMAÑO DE LETRA AUMENTADO (16)
     net = Network(height="650px", width="100%", directed=True, bgcolor="#ffffff", font_color="black")
     net.from_nx(G)
     
@@ -316,5 +313,16 @@ if archivo_subido is not None:
         st.metric("Total Nodos Activos", len(G.nodes))
         st.metric("Total Rutas Activas", len(G.edges))
         st.markdown("### Mapa de Calor (Exposición)")
-        st.markdown("🔴 **Bajo:** Canal opaco\n🟠 **Medio-Bajo:** Riesgo latente\n🟡 **Medio:** Neutro\n🟢 **Medio-Alto / Alto:** Canal expuesto (Fricción)")
+        
+        # Mapa de Calor con saltos de línea forzados en HTML para garantizar la presentación vertical
+        st.markdown("""
+        <div style="line-height: 2;">
+            🔴 <strong>Bajo:</strong> Canal opaco<br>
+            🟠 <strong>Medio-Bajo:</strong> Riesgo latente<br>
+            🟡 <strong>Medio:</strong> Neutro<br>
+            🟢 <strong>Medio-Alto / Alto:</strong> Canal expuesto (Fricción)
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.write("")
         st.info("💡 Modifica las tablas superiores para recalcular.")
