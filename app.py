@@ -258,7 +258,7 @@ if wb is not None:
     df_enlaces_original = leer_tabla_excel(wb, "tblEnlaces")
     df_pesos = leer_tabla_excel(wb, "tblPesos")
     df_pond_costes = leer_tabla_excel(wb, "tblMatrizPonderadaCostes")
-    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValoroperativo")
+    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValorOperativo")
     df_tradeoff = leer_tabla_excel(wb, "tblMatrizTradeOff")
 
     # ==========================================
