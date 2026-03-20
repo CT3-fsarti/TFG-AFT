@@ -444,7 +444,7 @@ if wb is not None:
 
     with st.expander("Matrices Matemáticas del Sistema (Teoría de Grafos)", expanded=True):
         tab_matriz1, tab_matriz2, tab_matriz3, tab_matriz4 = st.tabs([
-            "1️⃣ Adyacencia (Topológica)", 
+            "1️⃣ Adyacencia", 
             "2️⃣ Costes", 
             "3️⃣ Valor Operativo", 
             "4️⃣ Trade-Off Valor Operativo/Coste"
