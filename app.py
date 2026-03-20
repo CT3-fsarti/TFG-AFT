@@ -273,7 +273,7 @@ if wb is not None:
     df_enlaces_original = leer_tabla_excel(wb, "tblEnlaces")
     df_pesos = leer_tabla_excel(wb, "tblPesos")
     df_pond_costes = leer_tabla_excel(wb, "tblMatrizPonderadaCostes")
-    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValoroperativo")
+    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValorOperativo")
     df_tradeoff = leer_tabla_excel(wb, "tblMatrizTradeOff")
 
     # ==========================================
@@ -445,9 +445,9 @@ if wb is not None:
     with st.expander("Matrices Matemáticas del Sistema (Teoría de Grafos)", expanded=True):
         tab_matriz1, tab_matriz2, tab_matriz3, tab_matriz4 = st.tabs([
             "1️⃣ Adyacencia (Topológica)", 
-            "2️⃣ Costes (Fricción)", 
-            "3️⃣ Valor Operativo (Flujo)", 
-            "4️⃣ Trade-Off (Equilibrio)"
+            "2️⃣ Costes", 
+            "3️⃣ Valor Operativo", 
+            "4️⃣ Trade-Off Valor Operativo/Coste"
         ])
 
         with tab_matriz1:
