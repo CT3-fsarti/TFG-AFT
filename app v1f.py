@@ -10,6 +10,7 @@ import json
 
 # ==========================================
 # ESCUDO PROTECTOR PARA VERTEX AI
+# Evita que la app colapse si falta configurar algo
 # ==========================================
 try:
     from google.oauth2 import service_account
@@ -95,6 +96,9 @@ html_flag_es = f"<img src='data:image/png;base64,{assets_status['Flag ES B64']}'
 html_flag_fr = f"<img src='data:image/png;base64,{assets_status['Flag FR B64']}' class='flag-inline'>" if assets_status['Flag FR B64'] else ""
 html_flag_gb = f"<img src='data:image/png;base64,{assets_status['Flag GB B64']}' class='flag-inline'>" if assets_status['Flag GB B64'] else ""
 
+# ==========================================
+# 2. ESTRUCTURA DE DISEÑO PRINCIPAL (COLUMNAS)
+# ==========================================
 col_main, col_profile = st.columns([3, 1])
 
 with col_profile:
@@ -113,13 +117,14 @@ with col_profile:
         </div>
         """, unsafe_allow_html=True)
         
+        # STACK TECNOLÓGICO
         st.markdown("""
         <hr style="margin: 10px 0 15px 0; border-top: 1px solid #E6E9EF;">
         <p class='centered-text' style='font-size: 15px; color: #333; margin-bottom: 10px;'><strong>🛠️ Stack Tecnológico</strong></p>
         <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 20px;">
             <a href="https://www.python.org/" target="_blank" style="text-decoration: none; background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">Python</a>
             <a href="https://networkx.org/" target="_blank" style="text-decoration: none; background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">NetworkX</a>
-            <a href="https://pandas.pydata.org/" target="_blank" style="text-decoration: none; background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">Pandas</a>
+            <a href="https://pandas.pydata.org/" target="_blank" style="text-decoration: none; background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">Pandas (Excel)</a>
             <a href="https://streamlit.io/" target="_blank" style="text-decoration: none; background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">Streamlit</a>
             <a href="https://pyvis.readthedocs.io/" target="_blank" style="text-decoration: none; background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">PyVis</a>
             <a href="https://cloud.google.com/vertex-ai" target="_blank" style="text-decoration: none; background-color: #F0F4F8; color: #005691; padding: 3px 10px; border-radius: 12px; font-size: 12.5px; border: 1px solid #D9E2EC; font-weight: 500;">Vertex AI</a>
@@ -128,11 +133,11 @@ with col_profile:
         
         st.markdown(f"""
         <div style="font-size: 14px; line-height: 1.5; color: #333; text-align: justify;">
-            <p style="margin-bottom: 8px;">{html_flag_es} Graduada en Economía por la <strong>Universidad Carlos III de Madrid y París Dauphine (DTI)</strong>, Marina combina el rigor analítico macroeconómico con una vocación por la seguridad global, la inteligencia financiera y la tecnología.</p>
+            <p style="margin-bottom: 8px;">{html_flag_es} Graduada en Economía por la <strong>Universidad Carlos III de Madrid y París Dauphine (DTI)</strong>, Marina combina el rigor analítico macroeconómico con una vocación por la seguridad global, la inteligencia financiera y la tecnología.<br><br>Su TFG pionero en Modelado Estructurado de Financiación del Terrorismo se desarrolló en el marco de las tipologías del GAFI.</p>
             <hr style="margin: 12px 0; border-top: 1px solid #eee;">
-            <p style="margin-bottom: 8px;">{html_flag_fr} Diplômée en Économie de l'<strong>Universidad Carlos III de Madrid et Paris Dauphine (DTI)</strong>, Marina allie la rigueur analytique macroéconomique à une vocation pour la sécurité mondiale, le renseignement financier et la technologie.</p>
+            <p style="margin-bottom: 8px;">{html_flag_fr} Diplômée en Économie de l'<strong>Universidad Carlos III de Madrid et Paris Dauphine (DTI)</strong>, Marina allie la rigueur analytique macroéconomique à une vocation pour la sécurité mondiale, le renseignement financier et la technologie.<br><br>Son mémoire de fin d'études pionnier sur la Modélisation Structurée du Financement du Terrorisme a été développé dans le cadre des typologies du GAFI.</p>
             <hr style="margin: 12px 0; border-top: 1px solid #eee;">
-            <p>{html_flag_gb} Graduated in Economics from <strong>Universidad Carlos III de Madrid and Paris Dauphine (DTI)</strong>, Marina combines macroeconomic analytical rigor with a vocation for global security, financial intelligence, and technology.</p>
+            <p>{html_flag_gb} Graduated in Economics from <strong>Universidad Carlos III de Madrid and Paris Dauphine (DTI)</strong>, Marina combines macroeconomic analytical rigor with a vocation for global security, financial intelligence, and technology.<br><br>Her pioneering Bachelor's Thesis in Structured Modeling of Terrorism Financing was developed within the framework of FATF typologies.</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -157,12 +162,37 @@ with col_main:
         
     st.markdown("<hr style='margin-top: 15px; margin-bottom: 20px; border-top: 1px solid #111;'>", unsafe_allow_html=True)
     
+    if assets_status["Flag FR B64"]: 
+        st.markdown(f"""
+        <div class="language-block">
+            <img src="data:image/png;base64,{assets_status['Flag FR B64']}" class="flag-img" />
+            <div class="title-text">
+                Réseaux de Financement du Terrorisme:<br>
+                Simulation et analyse à travers l'Économie des Réseaux et la Théorie des Jeux
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    if assets_status["Flag GB B64"]: 
+        st.markdown(f"""
+        <div class="language-block">
+            <img src="data:image/png;base64,{assets_status['Flag GB B64']}" class="flag-img" />
+            <div class="title-text">
+                Terrorism Financing Networks:<br>
+                Simulation and Analysis through Network Economics and Game Theory
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    st.markdown("<hr style='margin-top: 15px; margin-bottom: 25px; border-top: 1px solid #111;'>", unsafe_allow_html=True)
+
     st.markdown("## 🎓 Sinopsis del Proyecto")
-    with st.expander("Leer Sinopsis / Abstract Completo", expanded=False):
-        tab_es, tab_en, tab_fr = st.tabs(["Español", "English", "Français"])
-        with tab_es: st.markdown("<div style='font-size: 15px; text-align: justify; color: #333;'>La Financiación del Terrorismo (FT) consiste en la captación de fondos... Este trabajo fundamenta su análisis en información reciente... El modelo resultante constituye una representación realista y fundamentada empíricamente, derivando en un modelo analítico altamente útil para la inteligencia financiera y el diseño de políticas de seguridad.</div>", unsafe_allow_html=True)
-        with tab_en: st.markdown("<div style='font-size: 15px; text-align: justify; color: #333;'>Terrorist Financing (TF) involves the raising of funds... This paper bases its analysis on recent information... The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>", unsafe_allow_html=True)
-        with tab_fr: st.markdown("<div style='font-size: 15px; text-align: justify; color: #333;'>Le Financement du Terrorisme (FT) consiste en la collecte de fonds... Ce travail fonde son analyse sur des informations récentes... Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.</div>", unsafe_allow_html=True)
+    with st.expander("Leer Sinopsis / Abstract Completo", expanded=True):
+        tab_fr, tab_es, tab_en = st.tabs(["Français", "Español", "English"])
+        
+        with tab_fr: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Le Financement du Terrorisme (FT) consiste en la collecte de fonds, ce qui englobe le processus de sollicitation, de rassemblement, de fourniture et de mise à disposition d'argent ou d'actifs dans le but de faciliter la capacité à mener des activités terroristes. En Espagne, la loi 10/2010 établit un cadre rigoureux contre la fourniture ou la distribution de fonds.<br><br>Les grands groupes organisés, les petites cellules et les acteurs individuels ont besoin d'argent pour développer leurs activités terroristes. La littérature académique s'accorde à dire que le manque de fonds limite considérablement leur capacité opérationnelle, le FT étant un élément structurant du terrorisme mondial.<br><br>Ce travail fonde son analyse sur des informations récentes, en utilisant des exemples représentatifs des dynamiques contemporaines. L'objectif principal est de construire une <strong>simulation d'un réseau de financement du terrorisme</strong> basée sur les preuves recueillies dans la littérature spécialisée (typologies du GAFI, ABE, etc.).<br><br>Une analyse structurelle est réalisée sur cette simulation à l'aide de l'Économie des Réseaux et de la Théorie des Jeux, incluant l'étude des métriques de centralité, l'importance des nœuds clés (points d'étranglement) et la résilience du système face aux interventions policières. Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.</div>""", unsafe_allow_html=True)
+        with tab_es: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">La Financiación del Terrorismo (FT) consiste en la captación de fondos, lo cual abarca el proceso de solicitud, recaudación, provisión y puesta a disposición de dinero o activos con el fin de facilitar o potenciar la capacidad de cualquier persona u organización para llevar a cabo actividades relacionadas con el terrorismo. En el caso concreto de España, la Ley 10/2010 establece un marco riguroso frente al suministro, depósito o distribución de fondos.<br><br>Tanto los grandes grupos organizados como las pequeñas células e incluso los actores individuales necesitan dinero para el desarrollo de la actividad terrorista. La literatura académica y los informes institucionales coinciden en que la falta de fondos limita drásticamente su capacidad operativa, siendo la FT un elemento vertebrador del terrorismo global.<br><br>Este trabajo fundamenta su análisis en información reciente, utilizando ejemplos observados en los últimos años que resultan representativos de las dinámicas contemporáneas. El objetivo principal consiste en construir una <strong>simulación de red de financiación del terrorismo</strong> basada en la evidencia recogida en la literatura especializada (tipologías del GAFI, EBA, etc.).<br><br>Sobre dicha simulación se realiza un análisis estructural mediante herramientas propias del análisis de redes (Economía de Redes) y la Teoría de Juegos, incluyendo el estudio de métricas de centralidad, la importancia relativa de los nodos clave (chokepoints) y la resiliencia del sistema ante intervenciones policiales. El modelo resultante constituye una representación realista y fundamentada empíricamente, derivando en un modelo analítico altamente útil para la inteligencia financiera y el diseño de políticas de seguridad.</div>""", unsafe_allow_html=True)
+        with tab_en: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.<br><br>Large organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.<br><br>This paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a <strong>simulation of a terrorist financing network</strong> based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).<br><br>A structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>""", unsafe_allow_html=True)
 
 # ==========================================
 # 3. FUNCIONES DE CARGA Y ESTILADO
@@ -177,7 +207,9 @@ def leer_tabla_excel(wb, nombre_tabla_buscada):
     return pd.DataFrame() 
 
 def aplicar_estilos(df_in):
+    """Estilado para las tablas de la Fase 1: Todo centrado y números a 0 decimales"""
     df_safe = df_in.copy()
+    
     df_safe.columns = df_safe.columns.astype(str)
     df_safe.loc[:, ~df_safe.columns.duplicated()]
 
@@ -203,7 +235,9 @@ def aplicar_estilos(df_in):
     return styler
 
 def aplicar_estilo_matriz(df_in, decimales=0):
+    """Estilado para matrices de la Fase 3: Todo centrado, ocultación de 0s y control de decimales"""
     df_safe = df_in.copy()
+    
     df_safe.index = df_safe.index.astype(str)
     df_safe.columns = df_safe.columns.astype(str)
     df_safe = df_safe.loc[~df_safe.index.duplicated(keep='first')]
@@ -216,9 +250,12 @@ def aplicar_estilo_matriz(df_in, decimales=0):
     ])
     
     def formato_celda(v):
-        if pd.isna(v) or v == 0 or v == "0" or v == "": return ""
-        try: return f"{float(v):.{decimales}f}"
-        except: return str(v)
+        if pd.isna(v) or v == 0 or v == "0" or v == "": 
+            return ""
+        try: 
+            return f"{float(v):.{decimales}f}"
+        except: 
+            return str(v)
         
     return styler.format(formato_celda)
 
@@ -236,7 +273,7 @@ if archivo_subido is not None:
 elif os.path.exists("Diseño Red FT.xlsx"):
     wb = load_workbook("Diseño Red FT.xlsx", data_only=True)
 else:
-    st.info("💡 Sube un archivo Excel para comenzar.")
+    st.info("💡 Sube un archivo Excel para comenzar, o asegúrate de que el archivo 'Diseño Red FT.xlsx' esté en la misma carpeta que este script para que se cargue automáticamente.")
 
 if wb is not None:
     df_tipos = leer_tabla_excel(wb, "tblTiposDeNodo")
@@ -253,15 +290,19 @@ if wb is not None:
     # FASE 1: BASE DE DATOS Y PARAMETRIZACIÓN
     # ==========================================
     st.markdown("## ⚙️ Fase 1: Base de Datos y Parametrización")
+    st.markdown("Revisa las entidades, rutas y la metodología de pesos aplicada al modelo.")
+
     tab_sim1, tab_sim2, tab_sim3, tab_sim4 = st.tabs(["🟢 Nodos (Actores)", "🔗 Enlaces (Rutas)", "🏷️ Tipos de Nodo", "⚖️ Matriz de Pesos (Metodología)"])
 
     with tab_sim1:
+        st.info("💡 Simula el arresto de un actor cambiando su columna **Activo** a 0.")
         cols_nodos = [c for c in ['Activo', 'NodoID', 'Nombre', 'Tipo', 'Descripción'] if c in df_nodos_original.columns]
         if not cols_nodos: cols_nodos = df_nodos_original.columns.tolist()
         df_n_sub = df_nodos_original[cols_nodos]
         df_nodos_editado = st.data_editor(aplicar_estilos(df_n_sub), use_container_width=True, num_rows="dynamic", key="editor_nodos")
         
     with tab_sim2:
+        st.info("💡 Edita la columna **Exposición** o desactiva rutas (1 -> 0).")
         cols_enlaces = [c for c in ['Activo', 'Nodo Origen', 'Nodo Destino', 'Tipo de Enlace', 'Exposición', 'Coste', 'Capacidad', 'Eficiencia'] if c in df_enlaces_original.columns]
         if not cols_enlaces: cols_enlaces = df_enlaces_original.columns.tolist()
         df_e_sub = df_enlaces_original[cols_enlaces]
@@ -271,8 +312,11 @@ if wb is not None:
         st.dataframe(aplicar_estilos(df_tipos), use_container_width=True)
         
     with tab_sim4:
+        st.markdown("**Sistema de escalas directa e inversa:** Esta tabla define cómo los atributos cualitativos se traducen matemáticamente para calcular el 'camino de menor resistencia' (fricción).")
         if not df_pesos.empty:
             st.dataframe(aplicar_estilos(df_pesos), use_container_width=True, hide_index=True)
+        else:
+            st.warning("No se ha encontrado la tabla 'tblPesos' en el archivo Excel.")
 
     # Procesamiento interno
     df_tipos = df_tipos.dropna(how='all')
@@ -336,10 +380,12 @@ if wb is not None:
     """)
 
     net.save_graph("mapa_interactivo.html")
+    with open("mapa_interactivo.html", 'r', encoding='utf-8') as f:
+        codigo_html = f.read()
 
     gcol1, gcol2 = st.columns([4, 1])
     with gcol1:
-        components.html(open("mapa_interactivo.html", 'r', encoding='utf-8').read(), height=670)
+        components.html(codigo_html, height=670)
 
     with gcol2:
         st.subheader("📊 Análisis")
@@ -352,7 +398,7 @@ if wb is not None:
             🔴 <strong>Bajo:</strong> Canal opaco<br>
             🟠 <strong>Medio-Bajo:</strong> Riesgo latente<br>
             🟡 <strong>Medio:</strong> Neutro<br>
-            🟢 <strong>Medio-Alto / Alto:</strong> Canal expuesto
+            🟢 <strong>Medio-Alto / Alto:</strong> Canal expuesto (Fricción)
         </div>
         """, unsafe_allow_html=True)
 
@@ -360,123 +406,111 @@ if wb is not None:
     # FASE 3: MODELADO MATEMÁTICO
     # ==========================================
     st.markdown("## 🔢 Fase 3: Modelado Matemático (Teoría de Grafos)")
-    with st.expander("Matrices Matemáticas del Sistema", expanded=False):
+    st.markdown("Traducción algebraica de la topología superior para el cálculo de equilibrio y cuellos de botella.")
+
+    with st.expander("Matrices Matemáticas del Sistema (Teoría de Grafos)", expanded=True):
         tab_matriz1, tab_matriz2, tab_matriz3, tab_matriz4, tab_matriz5, tab_matriz6 = st.tabs([
-            "1️⃣ Adyacencia", "2️⃣ Costes", "3️⃣ Valor Operativo", "4️⃣ Trade-Off", "5️⃣ Distancias", "6️⃣ Métricas"
+            "1️⃣ Adyacencia", 
+            "2️⃣ Costes", 
+            "3️⃣ Valor Operativo", 
+            "4️⃣ Trade-Off",
+            "5️⃣ Distancias",
+            "6️⃣ Métricas"
         ])
 
         with tab_matriz1:
+            st.markdown("**Matriz Binaria:** Representa la existencia de rutas (1 = conectado). Es la base estructural para calcular la centralidad de grado.")
             if len(G.nodes) > 0:
                 matriz_adyacencia = nx.to_pandas_adjacency(G, dtype=int)
                 st.dataframe(aplicar_estilo_matriz(matriz_adyacencia, 0), use_container_width=True)
+            else:
+                st.info("La red está vacía.")
+
         with tab_matriz2:
+            st.markdown("**Matriz Ponderada de Costes:** Refleja la fricción, exposición o coste intrínseco de utilizar cada canal para el movimiento de fondos.")
             if not df_pond_costes.empty:
                 df_pond_costes.set_index(df_pond_costes.columns[0], inplace=True)
                 st.dataframe(aplicar_estilo_matriz(df_pond_costes, 0), use_container_width=True)
+            else:
+                st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaCostes' en el archivo Excel.")
+
         with tab_matriz3:
+            st.markdown("**Matriz Ponderada de Valor Operativo:** Refleja la capacidad, eficiencia o volumen del flujo que permite mover cada canal financiero.")
             if not df_pond_valor.empty:
                 df_pond_valor.set_index(df_pond_valor.columns[0], inplace=True)
                 st.dataframe(aplicar_estilo_matriz(df_pond_valor, 0), use_container_width=True)
+            else:
+                st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaValoroperativo' en el archivo Excel.")
+                
         with tab_matriz4:
+            st.markdown("**Matriz Trade-Off:** Matriz combinada que evalúa la relación coste-beneficio para identificar los canales óptimos y las decisiones racionales de los actores (Equilibrio de Nash).")
             if not df_tradeoff.empty:
                 df_tradeoff.set_index(df_tradeoff.columns[0], inplace=True)
                 st.dataframe(aplicar_estilo_matriz(df_tradeoff, 2), use_container_width=True)
+            else:
+                st.warning("No se ha encontrado la tabla 'tblMatrizTradeOff' en el archivo Excel.")
+                
         with tab_matriz5:
+            st.markdown("**Matriz de Distancias:** Muestra las distancias o saltos mínimos entre los nodos de la red.")
             if not df_distancias.empty:
                 df_distancias.set_index(df_distancias.columns[0], inplace=True)
                 st.dataframe(aplicar_estilo_matriz(df_distancias, 0), use_container_width=True)
+            else:
+                st.warning("No se ha encontrado la tabla 'tblMatrizDistancias' en el archivo Excel.")
+                
         with tab_matriz6:
+            st.markdown("**Métricas:** Grado ponderado y otros indicadores de centralidad de los actores del modelo.")
             if not df_metricas.empty:
                 df_metricas.set_index(df_metricas.columns[0], inplace=True)
                 st.dataframe(aplicar_estilo_matriz(df_metricas, 0), use_container_width=True)
+            else:
+                st.warning("No se ha encontrado la tabla 'tblGradoPonderado' en el archivo Excel.")
 
     # ==========================================
     # FASE 4: ASISTENTE DE INTELIGENCIA (VERTEX AI)
     # ==========================================
-    st.markdown("## 🤖 Fase 4: Asistente de Inteligencia (Vertex AI)")
-    st.markdown("Consulta al modelo fundacional sobre vulnerabilidades y estrategias de disrupción policial.")
+    st.markdown("## 🤖 Fase 4: Asistente de Inteligencia Artificial (Vertex AI)")
+    st.markdown("Consulta al modelo fundacional de Google Cloud sobre la topología de la red y el análisis de la matriz.")
 
     if not VERTEX_AVAILABLE:
-        st.error("⚠️ Falta instalar la librería de Google Cloud (`google-cloud-aiplatform`).")
+        st.error("⚠️ Falta instalar la librería de Google Cloud. Para que funcione el chat, debes añadir `google-cloud-aiplatform` a tu archivo `requirements.txt` en GitHub.")
     else:
         try:
             if "gcp_service_account_json" not in st.secrets:
-                st.warning("⚠️ Faltan las credenciales en Streamlit Secrets.")
+                st.warning("⚠️ El asistente está pausado. Faltan las credenciales en Streamlit Secrets.")
+                st.info("Añade un secreto llamado `gcp_service_account_json` en la configuración de tu app (Settings -> Secrets) pegando el contenido del archivo JSON de Google Cloud.")
             else:
-                # Inicializar Vertex AI
+                # El parámetro strict=False ignora los caracteres de control (\n) problemáticos
                 credenciales_json = json.loads(st.secrets["gcp_service_account_json"], strict=False)
                 credenciales_gcp = service_account.Credentials.from_service_account_info(credenciales_json)
-                vertexai.init(project="aft-simulator", location="us-central1", credentials=credenciales_gcp)
                 
-                # INSTRUCCIÓN ESTRICTA PARA EL MODELO
-                rol_analista = """
-                ERES UN SISTEMA EXPERTO EN INTELIGENCIA FINANCIERA (PBC/FT).
-                REGLA 1: Eres un analista especialista en redes de Financiación del Terrorismo. Usa terminología institucional y analítica (chokepoints, tipologías GAFI, resiliencia, nodos clave).
-                REGLA 2: Responde EXCLUSIVAMENTE a preguntas sobre el análisis de la red proporcionada, tácticas de disrupción, prevención de blanqueo o financiación del terrorismo.
-                REGLA 3: Si el usuario te pregunta algo fuera de este ámbito profesional, debes declinar cortésmente recordando tu función estricta de analista.
-                """
+                vertexai.init(project="aft-simulator", location="us-central1", credentials=credenciales_gcp)
+                # Utilizando siempre Gemini 2.5 Pro según las preferencias
                 model = GenerativeModel("gemini-2.5-pro")
 
-                # INICIALIZAR MEMORIA DE CHAT
-                if "chat_history" not in st.session_state:
-                    st.session_state.chat_history = []
-
-                # Contexto dinámico de la red (se actualiza si apagas un nodo)
-                contexto_red = f"""
-                {rol_analista}
-                
-                ESTADO ACTUAL DE LA RED SIMULADA:
-                - Nodos (actores) activos: {len(G.nodes)}
-                - Rutas financieras (enlaces) activas: {len(G.edges)}
-                """
-
-                col_chat1, col_chat2 = st.columns([4, 1])
-                with col_chat2:
-                    if st.button("🔄 Recalcular Análisis", help="Borra la memoria y vuelve a analizar la red"):
-                        st.session_state.chat_history = []
-                        st.rerun()
-
-                # GENERAR DIAGNÓSTICO INICIAL AUTOMÁTICO
-                if len(st.session_state.chat_history) == 0:
-                    with st.spinner("Generando diagnóstico táctico inicial de la topología..."):
-                        prompt_inicial = f"{contexto_red}\n\nINSTRUCCIÓN: Basándote en el número de actores y rutas, redacta un breve y riguroso diagnóstico inicial (máximo 2 párrafos) sobre el estado de la red y sugiere una primera línea de investigación."
-                        response = model.generate_content(prompt_inicial)
-                        st.session_state.chat_history.append({"role": "assistant", "content": response.text})
-
-                # DIBUJAR HISTORIAL DE CONVERSACIÓN
-                for msg in st.session_state.chat_history:
-                    st.chat_message(msg["role"]).write(msg["content"])
-
-                # CAJA DE TEXTO PARA PREGUNTAS DEL USUARIO
-                user_query = st.chat_input("Haz una pregunta técnica sobre la red o sobre PBC/FT...")
+                user_query = st.chat_input("Pregunta a Gemini 2.5 Pro sobre la red de financiación...")
 
                 if user_query:
-                    # Mostrar y guardar pregunta
                     st.chat_message("user").write(user_query)
-                    st.session_state.chat_history.append({"role": "user", "content": user_query})
 
-                    # Preparar el contexto completo enviando la memoria al modelo
-                    historial_str = "\n".join([f"{'Usuario' if m['role']=='user' else 'Tú'}: {m['content']}" for m in st.session_state.chat_history[-4:]])
+                    contexto_red = f"""
+                    Eres un asistente de inteligencia financiera. Te presento el estado actual de la simulación de red:
+                    - Número de actores activos: {len(G.nodes)}
+                    - Número de rutas financieras activas: {len(G.edges)}
                     
-                    prompt_completo = f"""
-                    {contexto_red}
-                    
-                    MEMORIA RECIENTE DE LA CONVERSACIÓN:
-                    {historial_str}
-                    
-                    Usuario: {user_query}
-                    Tú:
+                    Pregunta del analista: {user_query}
                     """
 
-                    # Generar respuesta
                     with st.chat_message("assistant"):
-                        with st.spinner("Analizando..."):
-                            resp = model.generate_content(prompt_completo)
-                            st.write(resp.text)
-                            st.session_state.chat_history.append({"role": "assistant", "content": resp.text})
+                        with st.spinner("Analizando la topología con Gemini 2.5 Pro en Google Cloud..."):
+                            response = model.generate_content(contexto_red)
+                            st.write(response.text)
 
-        except json.JSONDecodeError:
-            st.error("❌ Error leyendo el archivo JSON de credenciales.")
+        except json.JSONDecodeError as e:
+            st.error(f"❌ Error leyendo el archivo JSON de Streamlit Secrets.")
+            st.info("Asegúrate de que en Settings -> Secrets tienes puesto el JSON envuelto en tres comillas SIMPLES: '''")
+            st.code(str(e))
         except Exception as e:
             st.error("❌ Ha ocurrido un error al conectar con Vertex AI.")
-            st.code(str(e))
+            with st.expander("Ver detalles técnicos del error"):
+                st.code(str(e))
