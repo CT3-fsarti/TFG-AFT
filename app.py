@@ -178,12 +178,12 @@ with col_main:
     with st.expander("Leer Sinopsis / Abstract Completo", expanded=True):
         tab_fr, tab_es, tab_en = st.tabs(["Français", "Español", "English"])
         
-        with tab_fr: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Le Financement du Terrorisme (FT) consiste en la collecte de fonds, ce qui englobe le processus de sollicitation, de rassemblement, de fourniture et de mise à disposition d'argent ou d'actifs dans le but de faciliter la capacité à mener des activités terroristes. En Espagne, la loi 10/2010 établit un cadre rigoureux contre la fourniture ou la distribution de fonds.<br><br>Les grands groupes organisés, les petites cellules et les acteurs individuels ont besoin d'argent pour développer leurs activités terroristes. La littérature académique s'accorde à dire que le manque de fonds limite considérablement leur capacité opérationnelle, le FT étant un élément structurant du terrorisme mondial.<br><br>Ce travail fonde son analyse sur des informations récentes, en utilisant des ejemplos représentatifs des dynamiques contemporaines. L'objectif principal est de construire une <strong>simulation d'un réseau de financement du terrorisme</strong> basée sur les preuves recueillies dans la littérature spécialisée (typologies du GAFI, ABE, etc.).<br><br>Une analyse structurelle est réalisée sur cette simulation à l'aide de l'Économie des Réseaux et de la Théorie des Jeux, incluant l'étude des métriques de centralité, l'importance des nœuds clés (points d'étranglement) et la résilience du système face aux interventions policières. Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.</div>""", unsafe_allow_html=True)
+        with tab_fr: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Le Financement du Terrorisme (FT) consiste en la collecte de fonds, ce qui englobe le processus de sollicitation, de rassemblement, de fourniture et de mise à disposition d'argent ou d'actifs dans le but de faciliter la capacité à mener des activités terroristes. En Espagne, la loi 10/2010 établit un cadre rigoureux contre la fourniture ou la distribution de fonds.<br><br>Les grands groupes organisés, les petites cellules et les acteurs individuels ont besoin d'argent pour développer leurs activités terroristes. La littérature académique s'accorde à dire que le manque de fonds limite considérablement leur capacité opérationnelle, le FT étant un élément structurant du terrorisme mondial.<br><br>Ce travail fonde son analyse sur des informations récentes, en utilisant des exemples représentatifs des dynamiques contemporaines. L'objectif principal est de construire une <strong>simulation d'un réseau de financement du terrorisme</strong> basée sur les preuves recueillies dans la littérature spécialisée (typologies du GAFI, ABE, etc.).<br><br>Une analyse structurelle est réalisée sur cette simulation à l'aide de l'Économie des Réseaux et de la Théorie des Jeux, incluant l'étude des métriques de centralité, l'importance des nœuds clés (points d'étranglement) et la résilience du système face aux interventions policières. Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.</div>""", unsafe_allow_html=True)
         with tab_es: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">La Financiación del Terrorismo (FT) consiste en la captación de fondos, lo cual abarca el proceso de solicitud, recaudación, provisión y puesta a disposición de dinero o activos con el fin de facilitar o potenciar la capacidad de cualquier persona u organización para llevar a cabo actividades relacionadas con el terrorismo. En el caso concreto de España, la Ley 10/2010 establece un marco riguroso frente al suministro, depósito o distribución de fondos.<br><br>Tanto los grandes grupos organizados como las pequeñas células e incluso los actores individuales necesitan dinero para el desarrollo de la actividad terrorista. La literatura académica y los informes institucionales coinciden en que la falta de fondos limita drásticamente su capacidad operativa, siendo la FT un elemento vertebrador del terrorismo global.<br><br>Este trabajo fundamenta su análisis en información reciente, utilizando ejemplos observados en los últimos años que resultan representativos de las dinámicas contemporáneas. El objetivo principal consiste en construir una <strong>simulación de red de financiación del terrorismo</strong> basada en la evidencia recogida en la literatura especializada (tipologías del GAFI, EBA, etc.).<br><br>Sobre dicha simulación se realiza un análisis estructural mediante herramientas propias del análisis de redes (Economía de Redes) y la Teoría de Juegos, incluyendo el estudio de métricas de centralidad, la importancia relativa de los nodos clave (chokepoints) y la resiliencia del sistema ante intervenciones policiales. El modelo resultante constituye una representación realista y fundamentada empíricamente, derivando en un modelo analítico altamente útil para la inteligencia financiera y el diseño de políticas de seguridad.</div>""", unsafe_allow_html=True)
         with tab_en: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.<br><br>Large organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.<br><br>This paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a <strong>simulation of a terrorist financing network</strong> based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).<br><br>A structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 3. FUNCIONES DE CARGA Y ESTILADO
+# 3. FUNCIONES DE CARGA Y ESTILADO NATIVO CON RED DE SEGURIDAD
 # ==========================================
 def leer_tabla_excel(wb, nombre_tabla_buscada):
     for hoja in wb.worksheets:
@@ -195,19 +195,35 @@ def leer_tabla_excel(wb, nombre_tabla_buscada):
     return pd.DataFrame() 
 
 def configuracion_centrada(df):
-    """Genera la configuración nativa de Streamlit para centrar todas las columnas"""
+    """Genera configuración nativa de centrado. Tiene red de seguridad por si falla."""
     config = {}
-    for col in df.columns:
-        config[str(col)] = st.column_config.Column(alignment="center")
-    # Centramos también la columna del índice por si acaso
-    config["_index"] = st.column_config.Column(alignment="center")
+    try:
+        # Probamos si la nube soporta el comando alignment
+        _ = st.column_config.Column(alignment="center") 
+        for col in df.columns:
+            config[str(col)] = st.column_config.Column(alignment="center")
+        config["_index"] = st.column_config.Column(alignment="center")
+    except TypeError:
+        # Si la nube está anticuada, devolvemos config vacía para no romper la app
+        pass 
     return config
 
-def aplicar_estilos(df):
-    """Estilado para las tablas de la FASE 1: Colores condicionales y decimales"""
-    styler = df.style.format(lambda v: f"{v:.0f}" if isinstance(v, (int, float)) and pd.notna(v) else ("" if pd.isna(v) else str(v)))
+def aplicar_estilos(df_in):
+    """Estilado para las tablas de la Fase 1: 0 decimales y formato condicional"""
+    df_safe = df_in.copy()
+    df_safe.columns = df_safe.columns.astype(str)
+    df_safe = df_safe.loc[:, ~df_safe.columns.duplicated()]
+
+    # Mantenemos el centrado CSS como plan B
+    styler = df_safe.style.set_properties(**{'text-align': 'center'})
+    styler = styler.set_table_styles([
+        dict(selector='th', props=[('text-align', 'center')]),
+        dict(selector='td', props=[('text-align', 'center')])
+    ])
     
-    if 'Activo' in df.columns:
+    styler = styler.format(lambda v: f"{v:.0f}" if isinstance(v, (int, float)) and pd.notna(v) else v)
+    
+    if 'Activo' in df_safe.columns:
         def color_activo(val):
             try:
                 v = int(val)
@@ -220,17 +236,30 @@ def aplicar_estilos(df):
             
     return styler
 
-def aplicar_estilo_matriz(df, decimales=0):
-    """Estilado para las matrices de la FASE 3: Ocultación de ceros y formato de decimales"""
-    def formato_matriz(v):
+def aplicar_estilo_matriz(df_in, decimales=0):
+    """Estilado para matrices de la Fase 3: Ocultación de 0s y control de decimales"""
+    df_safe = df_in.copy()
+    df_safe.index = df_safe.index.astype(str)
+    df_safe.columns = df_safe.columns.astype(str)
+    df_safe = df_safe.loc[~df_safe.index.duplicated(keep='first')]
+    df_safe = df_safe.loc[:, ~df_safe.columns.duplicated()]
+
+    # Mantenemos el centrado CSS como plan B
+    styler = df_safe.style.set_properties(**{'text-align': 'center'})
+    styler = styler.set_table_styles([
+        dict(selector='th', props=[('text-align', 'center')]),
+        dict(selector='td', props=[('text-align', 'center')])
+    ])
+    
+    def formato_celda(v):
         if pd.isna(v) or v == 0 or v == "0" or v == "": 
             return ""
-        try:
+        try: 
             return f"{float(v):.{decimales}f}"
-        except:
+        except: 
             return str(v)
-            
-    return df.style.format(formato_matriz)
+        
+    return styler.format(formato_celda)
 
 # ==========================================
 # 4. FLUJO DE DATOS
