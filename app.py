@@ -6,6 +6,12 @@ from pyvis.network import Network
 from openpyxl import load_workbook
 import os
 import base64
+import json
+
+# Importes para Vertex AI y Autenticación segura
+from google.oauth2 import service_account
+import vertexai
+from vertexai.generative_models import GenerativeModel
 
 # ==========================================
 # 1. CONFIGURACIÓN DE LA PÁGINA (BRANDING)
@@ -183,9 +189,8 @@ with col_main:
         with tab_en: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.<br><br>Large organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.<br><br>This paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a <strong>simulation of a terrorist financing network</strong> based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).<br><br>A structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>""", unsafe_allow_html=True)
 
 # ==========================================
-# FLUJO DE SIMULACIÓN (3 FASES)
+# 3. FUNCIONES DE CARGA Y ESTILADO
 # ==========================================
-
 def leer_tabla_excel(wb, nombre_tabla_buscada):
     for hoja in wb.worksheets:
         if nombre_tabla_buscada in hoja.tables:
@@ -195,17 +200,22 @@ def leer_tabla_excel(wb, nombre_tabla_buscada):
             return pd.DataFrame(filas[1:], columns=filas[0])
     return pd.DataFrame() 
 
-def aplicar_estilos(df):
-    """Estilado con CSS agresivo para centrar HTML puro. Decimales a 0."""
-    styler = df.style.set_properties(**{'text-align': 'center'})
+def aplicar_estilos(df_in):
+    """Estilado para las tablas de la Fase 1: Todo centrado y números a 0 decimales"""
+    df_safe = df_in.copy()
+    
+    df_safe.columns = df_safe.columns.astype(str)
+    df_safe = df_safe.loc[:, ~df_safe.columns.duplicated()]
+
+    styler = df_safe.style.set_properties(**{'text-align': 'center'})
     styler = styler.set_table_styles([
-        dict(selector='th', props=[('text-align', 'center !important')]),
-        dict(selector='td', props=[('text-align', 'center !important')])
+        dict(selector='th', props=[('text-align', 'center')]),
+        dict(selector='td', props=[('text-align', 'center')])
     ])
     
-    styler = styler.format(lambda v: f"{v:.0f}" if isinstance(v, (int, float)) and pd.notna(v) else ("" if pd.isna(v) else str(v)))
+    styler = styler.format(lambda v: f"{v:.0f}" if isinstance(v, (int, float)) and pd.notna(v) else v)
     
-    if 'Activo' in df.columns:
+    if 'Activo' in df_safe.columns:
         def color_activo(val):
             try:
                 v = int(val)
@@ -218,24 +228,34 @@ def aplicar_estilos(df):
             
     return styler
 
-def aplicar_estilo_matriz(df, decimales=0):
-    """Estilado para HTML puro: Oculta ceros, ajusta decimales y fuerza centrado."""
-    styler = df.style.set_properties(**{'text-align': 'center'})
+def aplicar_estilo_matriz(df_in, decimales=0):
+    """Estilado para matrices de la Fase 3: Todo centrado, ocultación de 0s y control de decimales"""
+    df_safe = df_in.copy()
+    
+    df_safe.index = df_safe.index.astype(str)
+    df_safe.columns = df_safe.columns.astype(str)
+    df_safe = df_safe.loc[~df_safe.index.duplicated(keep='first')]
+    df_safe = df_safe.loc[:, ~df_safe.columns.duplicated()]
+
+    styler = df_safe.style.set_properties(**{'text-align': 'center'})
     styler = styler.set_table_styles([
-        dict(selector='th', props=[('text-align', 'center !important')]),
-        dict(selector='td', props=[('text-align', 'center !important')])
+        dict(selector='th', props=[('text-align', 'center')]),
+        dict(selector='td', props=[('text-align', 'center')])
     ])
     
-    def formato_matriz(v):
+    def formato_celda(v):
         if pd.isna(v) or v == 0 or v == "0" or v == "": 
             return ""
-        try:
+        try: 
             return f"{float(v):.{decimales}f}"
-        except:
+        except: 
             return str(v)
-            
-    return styler.format(formato_matriz)
+        
+    return styler.format(formato_celda)
 
+# ==========================================
+# 4. FLUJO DE DATOS
+# ==========================================
 st.markdown("---")
 st.markdown("<div style='text-align: center; color: #555; font-size: 14px;'>FLUJO DEL SIMULADOR</div>", unsafe_allow_html=True)
 
@@ -250,15 +270,12 @@ else:
     st.info("💡 Sube un archivo Excel para comenzar, o asegúrate de que el archivo 'Diseño Red FT.xlsx' esté en la misma carpeta que este script para que se cargue automáticamente.")
 
 if wb is not None:
-    # Extracción de todas las tablas
     df_tipos = leer_tabla_excel(wb, "tblTiposDeNodo")
     df_nodos_original = leer_tabla_excel(wb, "tblNodos")
     df_enlaces_original = leer_tabla_excel(wb, "tblEnlaces")
     df_pesos = leer_tabla_excel(wb, "tblPesos")
-    
-    # MATRICES PONDERADAS
     df_pond_costes = leer_tabla_excel(wb, "tblMatrizPonderadaCostes")
-    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValorOperativo")
+    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValoroperativo")
     df_tradeoff = leer_tabla_excel(wb, "tblMatrizTradeOff")
     df_distancias = leer_tabla_excel(wb, "tblMatrizDistancias")
     df_metricas = leer_tabla_excel(wb, "tblGradoPonderado")
@@ -275,24 +292,20 @@ if wb is not None:
         st.info("💡 Simula el arresto de un actor cambiando su columna **Activo** a 0.")
         cols_nodos = [c for c in ['Activo', 'NodoID', 'Nombre', 'Tipo', 'Descripción'] if c in df_nodos_original.columns]
         if not cols_nodos: cols_nodos = df_nodos_original.columns.tolist()
-        # Usamos editor de datos sin column_config para no romper versiones
-        df_nodos_editado = st.data_editor(aplicar_estilos(df_nodos_original[cols_nodos]), use_container_width=True, num_rows="dynamic", key="editor_nodos")
+        df_n_sub = df_nodos_original[cols_nodos]
+        df_nodos_editado = st.data_editor(aplicar_estilos(df_n_sub), use_container_width=True, num_rows="dynamic", key="editor_nodos")
     with tab_sim2:
         st.info("💡 Edita la columna **Exposición** o desactiva rutas (1 -> 0).")
         cols_enlaces = [c for c in ['Activo', 'Nodo Origen', 'Nodo Destino', 'Tipo de Enlace', 'Exposición', 'Coste', 'Capacidad', 'Eficiencia'] if c in df_enlaces_original.columns]
         if not cols_enlaces: cols_enlaces = df_enlaces_original.columns.tolist()
-        # Usamos editor de datos sin column_config para no romper versiones
-        df_enlaces_editado = st.data_editor(aplicar_estilos(df_enlaces_original[cols_enlaces]), use_container_width=True, num_rows="dynamic", key="editor_enlaces")
+        df_e_sub = df_enlaces_original[cols_enlaces]
+        df_enlaces_editado = st.data_editor(aplicar_estilos(df_e_sub), use_container_width=True, num_rows="dynamic", key="editor_enlaces")
     with tab_sim3: 
-        # Usamos tabla HTML pura estática para forzar el centrado
-        st.table(aplicar_estilos(df_tipos))
+        st.dataframe(aplicar_estilos(df_tipos), use_container_width=True)
     with tab_sim4:
         st.markdown("**Sistema de escalas directa e inversa:** Esta tabla define cómo los atributos cualitativos se traducen matemáticamente para calcular el 'camino de menor resistencia' (fricción).")
         if not df_pesos.empty:
-            estilo_pesos = aplicar_estilos(df_pesos)
-            if hasattr(estilo_pesos, 'hide'): estilo_pesos = estilo_pesos.hide(axis="index")
-            # Usamos tabla HTML pura estática para forzar el centrado
-            st.table(estilo_pesos)
+            st.dataframe(aplicar_estilos(df_pesos), use_container_width=True, hide_index=True)
         else:
             st.warning("No se ha encontrado la tabla 'tblPesos' en el archivo Excel.")
 
@@ -337,8 +350,8 @@ if wb is not None:
     st.markdown("## 🌐 Fase 2: Topología Interactiva de la Red")
     
     if not nodos_activos.empty:
-        num_capas = nodos_activos['Capa'].nunique()
-        max_nodos_por_capa = nodos_activos['Capa'].value_counts().max()
+        num_capas = pd.to_numeric(nodos_activos['Capa'], errors='coerce').nunique()
+        max_nodos_por_capa = pd.to_numeric(nodos_activos['Capa'], errors='coerce').value_counts().max()
     else:
         num_capas, max_nodos_por_capa = 1, 1
         
@@ -435,7 +448,7 @@ if wb is not None:
         """, unsafe_allow_html=True)
 
     # ==========================================
-    # FASE 3: MODELADO MATEMÁTICO (ST.TABLE para centrado forzoso)
+    # FASE 3: MODELADO MATEMÁTICO
     # ==========================================
     st.markdown("## 🔢 Fase 3: Modelado Matemático (Teoría de Grafos)")
     st.markdown("Traducción algebraica de la topología superior para el cálculo de equilibrio y cuellos de botella.")
@@ -446,7 +459,7 @@ if wb is not None:
             "2️⃣ Costes", 
             "3️⃣ Valor Operativo", 
             "4️⃣ Trade-Off",
-            "5️⃣ Matriz Distancias",
+            "5️⃣ Distancias",
             "6️⃣ Métricas"
         ])
 
@@ -454,7 +467,7 @@ if wb is not None:
             st.markdown("**Matriz Binaria:** Representa la existencia de rutas (1 = conectado). Es la base estructural para calcular la centralidad de grado.")
             if len(G.nodes) > 0:
                 matriz_adyacencia = nx.to_pandas_adjacency(G, dtype=int)
-                st.table(aplicar_estilo_matriz(matriz_adyacencia, 0))
+                st.dataframe(aplicar_estilo_matriz(matriz_adyacencia, 0), use_container_width=True)
             else:
                 st.info("La red está vacía.")
 
@@ -462,7 +475,7 @@ if wb is not None:
             st.markdown("**Matriz Ponderada de Costes:** Refleja la fricción, exposición o coste intrínseco de utilizar cada canal para el movimiento de fondos.")
             if not df_pond_costes.empty:
                 df_pond_costes.set_index(df_pond_costes.columns[0], inplace=True)
-                st.table(aplicar_estilo_matriz(df_pond_costes, 0))
+                st.dataframe(aplicar_estilo_matriz(df_pond_costes, 0), use_container_width=True)
             else:
                 st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaCostes' en el archivo Excel.")
 
@@ -470,7 +483,7 @@ if wb is not None:
             st.markdown("**Matriz Ponderada de Valor Operativo:** Refleja la capacidad, eficiencia o volumen del flujo que permite mover cada canal financiero.")
             if not df_pond_valor.empty:
                 df_pond_valor.set_index(df_pond_valor.columns[0], inplace=True)
-                st.table(aplicar_estilo_matriz(df_pond_valor, 0))
+                st.dataframe(aplicar_estilo_matriz(df_pond_valor, 0), use_container_width=True)
             else:
                 st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaValoroperativo' en el archivo Excel.")
                 
@@ -478,7 +491,7 @@ if wb is not None:
             st.markdown("**Matriz Trade-Off:** Matriz combinada que evalúa la relación coste-beneficio para identificar los canales óptimos y las decisiones racionales de los actores (Equilibrio de Nash).")
             if not df_tradeoff.empty:
                 df_tradeoff.set_index(df_tradeoff.columns[0], inplace=True)
-                st.table(aplicar_estilo_matriz(df_tradeoff, 2))
+                st.dataframe(aplicar_estilo_matriz(df_tradeoff, 2), use_container_width=True)
             else:
                 st.warning("No se ha encontrado la tabla 'tblMatrizTradeOff' en el archivo Excel.")
                 
@@ -486,7 +499,7 @@ if wb is not None:
             st.markdown("**Matriz de Distancias:** Muestra las distancias o saltos mínimos entre los nodos de la red.")
             if not df_distancias.empty:
                 df_distancias.set_index(df_distancias.columns[0], inplace=True)
-                st.table(aplicar_estilo_matriz(df_distancias, 0))
+                st.dataframe(aplicar_estilo_matriz(df_distancias, 0), use_container_width=True)
             else:
                 st.warning("No se ha encontrado la tabla 'tblMatrizDistancias' en el archivo Excel.")
                 
@@ -494,6 +507,47 @@ if wb is not None:
             st.markdown("**Métricas:** Grado ponderado y otros indicadores de centralidad de los actores del modelo.")
             if not df_metricas.empty:
                 df_metricas.set_index(df_metricas.columns[0], inplace=True)
-                st.table(aplicar_estilo_matriz(df_metricas, 0))
+                st.dataframe(aplicar_estilo_matriz(df_metricas, 0), use_container_width=True)
             else:
                 st.warning("No se ha encontrado la tabla 'tblGradoPonderado' en el archivo Excel.")
+
+    # ==========================================
+    # FASE 4: ASISTENTE DE INTELIGENCIA (VERTEX AI)
+    # ==========================================
+    st.markdown("## 🤖 Fase 4: Asistente de Inteligencia Artificial")
+    st.markdown("Consulta al modelo fundacional sobre la topología de la red, vulnerabilidades y estrategias de mitigación.")
+
+    try:
+        # 1. Cargamos el JSON de Streamlit Secrets y lo convertimos a credenciales oficiales
+        credenciales_json = json.loads(st.secrets["gcp_service_account_json"])
+        credenciales_gcp = service_account.Credentials.from_service_account_info(credenciales_json)
+        
+        # 2. Inicializamos Vertex pasándole esas credenciales
+        vertexai.init(project="aft-simulator", location="us-central1", credentials=credenciales_gcp)
+        
+        # 3. Llamamos a Gemini 2.5 Pro
+        model = GenerativeModel("gemini-2.5-pro")
+
+        user_query = st.chat_input("Pregunta al asistente sobre la red de financiación...")
+
+        if user_query:
+            st.chat_message("user").write(user_query)
+
+            contexto_red = f"""
+            Contexto actual de la red de Financiación del Terrorismo analizada:
+            - Nodos (actores) activos: {len(G.nodes)}
+            - Rutas financieras activas: {len(G.edges)}
+            
+            Pregunta del analista: {user_query}
+            """
+
+            with st.chat_message("assistant"):
+                with st.spinner("Analizando la topología..."):
+                    response = model.generate_content(contexto_red)
+                    st.write(response.text)
+
+    except KeyError:
+        st.warning("⚠️ El asistente está pausado. Faltan las credenciales en Streamlit Secrets.")
+        st.info("Añade el secreto `gcp_service_account_json` en la configuración de tu app para activarlo.")
+    except Exception as e:
+        st.error(f"Error conectando con Vertex AI: {e}")
