@@ -183,7 +183,7 @@ with col_main:
         with tab_en: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.<br><br>Large organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.<br><br>This paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a <strong>simulation of a terrorist financing network</strong> based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).<br><br>A structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 3. FUNCIONES DE CARGA Y ESTILADO
+# 3. FUNCIONES DE CARGA Y ESTILADO NATIVO
 # ==========================================
 def leer_tabla_excel(wb, nombre_tabla_buscada):
     for hoja in wb.worksheets:
@@ -194,11 +194,16 @@ def leer_tabla_excel(wb, nombre_tabla_buscada):
             return pd.DataFrame(filas[1:], columns=filas[0])
     return pd.DataFrame() 
 
+def conf_centrada(df):
+    """Genera la configuración nativa de Streamlit para centrar celdas y encabezados de forma forzosa"""
+    config = {str(col): st.column_config.Column(alignment="center") for col in df.columns}
+    # Forzar también el centrado del índice si se muestra
+    config["_index"] = st.column_config.Column(alignment="center")
+    return config
+
 def aplicar_estilos(df_in):
-    """Estilado para las tablas de la Fase 1: Todo centrado y números a 0 decimales"""
+    """Estilado para las tablas de la Fase 1: 0 decimales y formato condicional"""
     df_safe = df_in.copy()
-    
-    # Aseguramos compatibilidad de índices/columnas con Pandas Styler
     df_safe.columns = df_safe.columns.astype(str)
     df_safe = df_safe.loc[:, ~df_safe.columns.duplicated()]
 
@@ -208,7 +213,6 @@ def aplicar_estilos(df_in):
         dict(selector='td', props=[('text-align', 'center')])
     ])
     
-    # Formatear números a 0 decimales (dejando el texto intacto)
     styler = styler.format(lambda v: f"{v:.0f}" if isinstance(v, (int, float)) and pd.notna(v) else v)
     
     if 'Activo' in df_safe.columns:
@@ -225,10 +229,8 @@ def aplicar_estilos(df_in):
     return styler
 
 def aplicar_estilo_matriz(df_in, decimales=0):
-    """Estilado para matrices de la Fase 3: Todo centrado, ocultación de 0s y control de decimales"""
+    """Estilado para matrices de la Fase 3: Ocultación de 0s y control de decimales"""
     df_safe = df_in.copy()
-    
-    # Aseguramos compatibilidad de índices/columnas con Pandas Styler
     df_safe.index = df_safe.index.astype(str)
     df_safe.columns = df_safe.columns.astype(str)
     df_safe = df_safe.loc[~df_safe.index.duplicated(keep='first')]
@@ -240,7 +242,6 @@ def aplicar_estilo_matriz(df_in, decimales=0):
         dict(selector='td', props=[('text-align', 'center')])
     ])
     
-    # Formatear ocultando ceros o nulos, y aplicando decimales requeridos
     def formato_celda(v):
         if pd.isna(v) or v == 0 or v == "0" or v == "": 
             return ""
@@ -273,7 +274,7 @@ if wb is not None:
     df_enlaces_original = leer_tabla_excel(wb, "tblEnlaces")
     df_pesos = leer_tabla_excel(wb, "tblPesos")
     df_pond_costes = leer_tabla_excel(wb, "tblMatrizPonderadaCostes")
-    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValorOperativo")
+    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValoroperativo")
     df_tradeoff = leer_tabla_excel(wb, "tblMatrizTradeOff")
     df_distancias = leer_tabla_excel(wb, "tblMatrizDistancias")
     df_metricas = leer_tabla_excel(wb, "tblGradoPonderado")
@@ -290,18 +291,20 @@ if wb is not None:
         st.info("💡 Simula el arresto de un actor cambiando su columna **Activo** a 0.")
         cols_nodos = [c for c in ['Activo', 'NodoID', 'Nombre', 'Tipo', 'Descripción'] if c in df_nodos_original.columns]
         if not cols_nodos: cols_nodos = df_nodos_original.columns.tolist()
-        df_nodos_editado = st.data_editor(aplicar_estilos(df_nodos_original[cols_nodos]), use_container_width=True, num_rows="dynamic", key="editor_nodos")
+        df_n_sub = df_nodos_original[cols_nodos]
+        df_nodos_editado = st.data_editor(aplicar_estilos(df_n_sub), use_container_width=True, num_rows="dynamic", key="editor_nodos", column_config=conf_centrada(df_n_sub))
     with tab_sim2:
         st.info("💡 Edita la columna **Exposición** o desactiva rutas (1 -> 0).")
         cols_enlaces = [c for c in ['Activo', 'Nodo Origen', 'Nodo Destino', 'Tipo de Enlace', 'Exposición', 'Coste', 'Capacidad', 'Eficiencia'] if c in df_enlaces_original.columns]
         if not cols_enlaces: cols_enlaces = df_enlaces_original.columns.tolist()
-        df_enlaces_editado = st.data_editor(aplicar_estilos(df_enlaces_original[cols_enlaces]), use_container_width=True, num_rows="dynamic", key="editor_enlaces")
+        df_e_sub = df_enlaces_original[cols_enlaces]
+        df_enlaces_editado = st.data_editor(aplicar_estilos(df_e_sub), use_container_width=True, num_rows="dynamic", key="editor_enlaces", column_config=conf_centrada(df_e_sub))
     with tab_sim3: 
-        st.dataframe(aplicar_estilos(df_tipos), use_container_width=True)
+        st.dataframe(aplicar_estilos(df_tipos), use_container_width=True, column_config=conf_centrada(df_tipos))
     with tab_sim4:
         st.markdown("**Sistema de escalas directa e inversa:** Esta tabla define cómo los atributos cualitativos se traducen matemáticamente para calcular el 'camino de menor resistencia' (fricción).")
         if not df_pesos.empty:
-            st.dataframe(aplicar_estilos(df_pesos), use_container_width=True, hide_index=True)
+            st.dataframe(aplicar_estilos(df_pesos), use_container_width=True, hide_index=True, column_config=conf_centrada(df_pesos))
         else:
             st.warning("No se ha encontrado la tabla 'tblPesos' en el archivo Excel.")
 
@@ -353,8 +356,10 @@ if wb is not None:
         
     sep_horizontal = max(int((1440 - 200) / (num_capas - 1 if num_capas > 1 else 1)), 250)
     sep_vertical = max(int((650 - 120) / max_nodos_por_capa), 60)
-    
-    opciones_net = f"""
+
+    net = Network(height="650px", width="100%", directed=True, bgcolor="#ffffff", font_color="black")
+    net.from_nx(G)
+    net.set_options(f"""
     {{
       "layout": {{ "hierarchical": {{ "enabled": true, "direction": "LR", "sortMethod": "directed", "levelSeparation": {sep_horizontal}, "nodeDistance": {sep_vertical}, "treeSpacing": {sep_vertical}, "parentCentralization": true }} }},
       "physics": {{ "enabled": false }},
@@ -362,11 +367,8 @@ if wb is not None:
       "nodes": {{ "font": {{ "size": 16, "face": "Arial" }} }},
       "interaction": {{ "zoomView": true, "dragNodes": true, "hover": true }}
     }}
-    """
+    """)
 
-    net = Network(height="650px", width="100%", directed=True, bgcolor="#ffffff", font_color="black")
-    net.from_nx(G)
-    net.set_options(opciones_net)
     net.save_graph("mapa_interactivo.html")
     with open("mapa_interactivo.html", 'r', encoding='utf-8') as f:
         codigo_html = f.read()
@@ -401,7 +403,7 @@ if wb is not None:
             "1️⃣ Adyacencia", 
             "2️⃣ Costes", 
             "3️⃣ Valor Operativo", 
-            "4️⃣ Trade-Off Valor Operativo/Coste",
+            "4️⃣ Trade-Off",
             "5️⃣ Matriz de Distancias",
             "6️⃣ Métricas"
         ])
@@ -410,7 +412,7 @@ if wb is not None:
             st.markdown("**Matriz Binaria:** Representa la existencia de rutas (1 = conectado). Es la base estructural para calcular la centralidad de grado.")
             if len(G.nodes) > 0:
                 matriz_adyacencia = nx.to_pandas_adjacency(G, dtype=int)
-                st.dataframe(aplicar_estilo_matriz(matriz_adyacencia, 0), use_container_width=True)
+                st.dataframe(aplicar_estilo_matriz(matriz_adyacencia, 0), use_container_width=True, column_config=conf_centrada(matriz_adyacencia))
             else:
                 st.info("La red está vacía.")
 
@@ -418,7 +420,7 @@ if wb is not None:
             st.markdown("**Matriz Ponderada de Costes:** Refleja la fricción, exposición o coste intrínseco de utilizar cada canal para el movimiento de fondos.")
             if not df_pond_costes.empty:
                 df_pond_costes.set_index(df_pond_costes.columns[0], inplace=True)
-                st.dataframe(aplicar_estilo_matriz(df_pond_costes, 0), use_container_width=True)
+                st.dataframe(aplicar_estilo_matriz(df_pond_costes, 0), use_container_width=True, column_config=conf_centrada(df_pond_costes))
             else:
                 st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaCostes' en el archivo Excel.")
 
@@ -426,30 +428,5 @@ if wb is not None:
             st.markdown("**Matriz Ponderada de Valor Operativo:** Refleja la capacidad, eficiencia o volumen del flujo que permite mover cada canal financiero.")
             if not df_pond_valor.empty:
                 df_pond_valor.set_index(df_pond_valor.columns[0], inplace=True)
-                st.dataframe(aplicar_estilo_matriz(df_pond_valor, 0), use_container_width=True)
+                st.dataframe(aplicar_estilo_matriz(df_pond_valor, 0), use_container_width=True, column_config=conf_centrada(df_pond_valor))
             else:
-                st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaValorOperativo' en el archivo Excel.")
-                
-        with tab_matriz4:
-            st.markdown("**Matriz Trade-Off:** Matriz combinada que evalúa la relación coste-beneficio para identificar los canales óptimos y las decisiones racionales de los actores (Equilibrio de Nash).")
-            if not df_tradeoff.empty:
-                df_tradeoff.set_index(df_tradeoff.columns[0], inplace=True)
-                st.dataframe(aplicar_estilo_matriz(df_tradeoff, 2), use_container_width=True)
-            else:
-                st.warning("No se ha encontrado la tabla 'tblMatrizTradeOff' en el archivo Excel.")
-                
-        with tab_matriz5:
-            st.markdown("**Matriz de Distancias:** Muestra las distancias o saltos mínimos entre los nodos de la red.")
-            if not df_distancias.empty:
-                df_distancias.set_index(df_distancias.columns[0], inplace=True)
-                st.dataframe(aplicar_estilo_matriz(df_distancias, 0), use_container_width=True)
-            else:
-                st.warning("No se ha encontrado la tabla 'tblMatrizDistancias' en el archivo Excel.")
-                
-        with tab_matriz6:
-            st.markdown("**Métricas:** Grado ponderado y otros indicadores de centralidad de los actores del modelo.")
-            if not df_metricas.empty:
-                df_metricas.set_index(df_metricas.columns[0], inplace=True)
-                st.dataframe(aplicar_estilo_matriz(df_metricas, 0), use_container_width=True)
-            else:
-                st.warning("No se ha encontrado la tabla 'tblGradoPonderado' en el archivo Excel.")
