@@ -275,6 +275,8 @@ if wb is not None:
     df_pond_costes = leer_tabla_excel(wb, "tblMatrizPonderadaCostes")
     df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValorOperativo")
     df_tradeoff = leer_tabla_excel(wb, "tblMatrizTradeOff")
+    df_distancias = leer_tabla_excel(wb, "tblMatrizDistancias")
+    df_metricas = leer_tabla_excel(wb, "tblGradoPonderado")
 
     # ==========================================
     # FASE 1: BASE DE DATOS Y PARAMETRIZACIÓN
@@ -368,58 +370,10 @@ if wb is not None:
     net.save_graph("mapa_interactivo.html")
     with open("mapa_interactivo.html", 'r', encoding='utf-8') as f:
         codigo_html = f.read()
-        
-    # Procesamiento Grafo Trade-Off
-    G_to = nx.DiGraph()
-    for _, r in nodos_activos.iterrows():
-        tipo = str(r['Tipo']).strip()
-        G_to.add_node(str(r['NodoID']), label=f"{r['NodoID']} - {r.get('Nombre','')}", color=colores_capa.get(tipo,'#CCC'), level=int(r['Capa']))
-    
-    # Calcular umbrales de percentil para el Trade-Off
-    threshold_high, threshold_med = 0, 0
-    if not df_tradeoff.empty:
-        df_to_num = df_tradeoff.copy()
-        df_to_num.set_index(df_to_num.columns[0], inplace=True)
-        df_to_num = df_to_num.apply(pd.to_numeric, errors='coerce').fillna(0)
-        non_zero_vals = df_to_num.values[df_to_num.values > 0]
-        if len(non_zero_vals) > 0:
-            threshold_high = pd.Series(non_zero_vals.flatten()).quantile(0.66)
-            threshold_med = pd.Series(non_zero_vals.flatten()).quantile(0.33)
-
-    for _, r in enlaces_activos.iterrows():
-        origen, destino = str(r['Nodo Origen']), str(r['Nodo Destino'])
-        if origen in G_to.nodes and destino in G_to.nodes:
-            to_val = 0
-            if not df_tradeoff.empty:
-                try:
-                    to_val = df_to_num.loc[origen, destino]
-                except: pass
-            
-            # Asignar color y grosor según el valor del Trade-Off
-            if to_val >= threshold_high and to_val > 0:
-                c_edge, w_edge = '#008000', 4.0  # Verde oscuro y grueso (Óptimo)
-            elif to_val >= threshold_med and to_val > 0:
-                c_edge, w_edge = '#90EE90', 2.0  # Verde claro (Medio)
-            elif to_val > 0:
-                c_edge, w_edge = '#FFB84D', 1.0  # Naranja (Subóptimo)
-            else:
-                c_edge, w_edge = '#E6E6E6', 0.5  # Gris tenue (Sin valor/Inactivo)
-                
-            G_to.add_edge(origen, destino, color=c_edge, width=w_edge, title=f"Trade-Off: {to_val:.2f}")
-            
-    net2 = Network(height="650px", width="100%", directed=True, bgcolor="#ffffff", font_color="black")
-    net2.from_nx(G_to)
-    net2.set_options(opciones_net)
-    net2.save_graph("grafo_to.html")
 
     gcol1, gcol2 = st.columns([4, 1])
     with gcol1:
-        tab_graf1, tab_graf2 = st.tabs(["🌐 Topología Estándar (Exposición)", "🎯 Rutas Críticas (Trade-Off)"])
-        with tab_graf1:
-            components.html(codigo_html, height=670)
-        with tab_graf2:
-            st.markdown("<div style='font-size: 14px; margin-bottom: 5px; color: #555;'>Visualización de los caminos de menor resistencia (Equilibrio de Nash). Los enlaces en <strong>verde grueso</strong> identifican los canales de mayor eficiencia operativa frente al riesgo.</div>", unsafe_allow_html=True)
-            components.html(open("grafo_to.html", 'r', encoding='utf-8').read(), height=670)
+        components.html(codigo_html, height=670)
 
     with gcol2:
         st.subheader("📊 Análisis")
@@ -443,11 +397,13 @@ if wb is not None:
     st.markdown("Traducción algebraica de la topología superior para el cálculo de equilibrio y cuellos de botella.")
 
     with st.expander("Matrices Matemáticas del Sistema (Teoría de Grafos)", expanded=True):
-        tab_matriz1, tab_matriz2, tab_matriz3, tab_matriz4 = st.tabs([
+        tab_matriz1, tab_matriz2, tab_matriz3, tab_matriz4, tab_matriz5, tab_matriz6 = st.tabs([
             "1️⃣ Adyacencia", 
             "2️⃣ Costes", 
             "3️⃣ Valor Operativo", 
-            "4️⃣ Trade-Off Valor Operativo/Coste"
+            "4️⃣ Trade-Off Valor Operativo/Coste",
+            "5️⃣ Matriz de Distancias",
+            "6️⃣ Métricas"
         ])
 
         with tab_matriz1:
@@ -472,7 +428,7 @@ if wb is not None:
                 df_pond_valor.set_index(df_pond_valor.columns[0], inplace=True)
                 st.dataframe(aplicar_estilo_matriz(df_pond_valor, 0), use_container_width=True)
             else:
-                st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaValoroperativo' en el archivo Excel.")
+                st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaValorOperativo' en el archivo Excel.")
                 
         with tab_matriz4:
             st.markdown("**Matriz Trade-Off:** Matriz combinada que evalúa la relación coste-beneficio para identificar los canales óptimos y las decisiones racionales de los actores (Equilibrio de Nash).")
@@ -481,3 +437,19 @@ if wb is not None:
                 st.dataframe(aplicar_estilo_matriz(df_tradeoff, 2), use_container_width=True)
             else:
                 st.warning("No se ha encontrado la tabla 'tblMatrizTradeOff' en el archivo Excel.")
+                
+        with tab_matriz5:
+            st.markdown("**Matriz de Distancias:** Muestra las distancias o saltos mínimos entre los nodos de la red.")
+            if not df_distancias.empty:
+                df_distancias.set_index(df_distancias.columns[0], inplace=True)
+                st.dataframe(aplicar_estilo_matriz(df_distancias, 0), use_container_width=True)
+            else:
+                st.warning("No se ha encontrado la tabla 'tblMatrizDistancias' en el archivo Excel.")
+                
+        with tab_matriz6:
+            st.markdown("**Métricas:** Grado ponderado y otros indicadores de centralidad de los actores del modelo.")
+            if not df_metricas.empty:
+                df_metricas.set_index(df_metricas.columns[0], inplace=True)
+                st.dataframe(aplicar_estilo_matriz(df_metricas, 0), use_container_width=True)
+            else:
+                st.warning("No se ha encontrado la tabla 'tblGradoPonderado' en el archivo Excel.")
