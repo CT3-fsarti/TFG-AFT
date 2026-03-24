@@ -195,7 +195,7 @@ with col_main:
         with tab_en: st.markdown("""<div style="font-size: 15px; text-align: justify; color: #333;">Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.<br><br>Large organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.<br><br>This paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a <strong>simulation of a terrorist financing network</strong> based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).<br><br>A structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>""", unsafe_allow_html=True)
 
 # ==========================================
-# 3. FUNCIONES DE CARGA Y ESTILADO ESTABLE
+# 3. FUNCIONES DE CARGA Y ESTILADO
 # ==========================================
 def leer_tabla_excel(wb, nombre_tabla_buscada):
     for hoja in wb.worksheets:
@@ -207,7 +207,7 @@ def leer_tabla_excel(wb, nombre_tabla_buscada):
     return pd.DataFrame() 
 
 def aplicar_estilos(df_in):
-    """Estilado básico y seguro para las tablas de la Fase 1"""
+    """Estilado para las tablas de la Fase 1: Todo centrado y números a 0 decimales"""
     df_safe = df_in.copy()
     
     df_safe.columns = df_safe.columns.astype(str)
@@ -235,7 +235,7 @@ def aplicar_estilos(df_in):
     return styler
 
 def aplicar_estilo_matriz(df_in, decimales=0):
-    """Estilado básico y seguro para matrices de la Fase 3"""
+    """Estilado para matrices de la Fase 3: Todo centrado, ocultación de 0s y control de decimales"""
     df_safe = df_in.copy()
     
     df_safe.index = df_safe.index.astype(str)
@@ -480,10 +480,12 @@ if wb is not None:
                 st.warning("⚠️ El asistente está pausado. Faltan las credenciales en Streamlit Secrets.")
                 st.info("Añade un secreto llamado `gcp_service_account_json` en la configuración de tu app (Settings -> Secrets) pegando el contenido del archivo JSON de Google Cloud.")
             else:
-                credenciales_json = json.loads(st.secrets["gcp_service_account_json"])
+                # El parámetro strict=False ignora los caracteres de control (\n) problemáticos
+                credenciales_json = json.loads(st.secrets["gcp_service_account_json"], strict=False)
                 credenciales_gcp = service_account.Credentials.from_service_account_info(credenciales_json)
                 
                 vertexai.init(project="aft-simulator", location="us-central1", credentials=credenciales_gcp)
+                # Utilizando siempre Gemini 2.5 Pro según las preferencias
                 model = GenerativeModel("gemini-2.5-pro")
 
                 user_query = st.chat_input("Pregunta a Gemini 2.5 Pro sobre la red de financiación...")
@@ -500,10 +502,14 @@ if wb is not None:
                     """
 
                     with st.chat_message("assistant"):
-                        with st.spinner("Analizando la topología en Google Cloud..."):
+                        with st.spinner("Analizando la topología con Gemini 2.5 Pro en Google Cloud..."):
                             response = model.generate_content(contexto_red)
                             st.write(response.text)
 
+        except json.JSONDecodeError as e:
+            st.error(f"❌ Error leyendo el archivo JSON de Streamlit Secrets.")
+            st.info("Asegúrate de que en Settings -> Secrets tienes puesto el JSON envuelto en tres comillas SIMPLES: '''")
+            st.code(str(e))
         except Exception as e:
             st.error("❌ Ha ocurrido un error al conectar con Vertex AI.")
             with st.expander("Ver detalles técnicos del error"):
