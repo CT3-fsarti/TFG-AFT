@@ -430,3 +430,28 @@ if wb is not None:
                 df_pond_valor.set_index(df_pond_valor.columns[0], inplace=True)
                 st.dataframe(aplicar_estilo_matriz(df_pond_valor, 0), use_container_width=True, column_config=conf_centrada(df_pond_valor))
             else:
+                st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaValoroperativo' en el archivo Excel.")
+                
+        with tab_matriz4:
+            st.markdown("**Matriz Trade-Off:** Matriz combinada que evalúa la relación coste-beneficio para identificar los canales óptimos y las decisiones racionales de los actores (Equilibrio de Nash).")
+            if not df_tradeoff.empty:
+                df_tradeoff.set_index(df_tradeoff.columns[0], inplace=True)
+                st.dataframe(aplicar_estilo_matriz(df_tradeoff, 2), use_container_width=True, column_config=conf_centrada(df_tradeoff))
+            else:
+                st.warning("No se ha encontrado la tabla 'tblMatrizTradeOff' en el archivo Excel.")
+                
+        with tab_matriz5:
+            st.markdown("**Matriz de Distancias:** Muestra las distancias o saltos mínimos entre los nodos de la red.")
+            if not df_distancias.empty:
+                df_distancias.set_index(df_distancias.columns[0], inplace=True)
+                st.dataframe(aplicar_estilo_matriz(df_distancias, 0), use_container_width=True, column_config=conf_centrada(df_distancias))
+            else:
+                st.warning("No se ha encontrado la tabla 'tblMatrizDistancias' en el archivo Excel.")
+                
+        with tab_matriz6:
+            st.markdown("**Métricas:** Grado ponderado y otros indicadores de centralidad de los actores del modelo.")
+            if not df_metricas.empty:
+                df_metricas.set_index(df_metricas.columns[0], inplace=True)
+                st.dataframe(aplicar_estilo_matriz(df_metricas, 0), use_container_width=True, column_config=conf_centrada(df_metricas))
+            else:
+                st.warning("No se ha encontrado la tabla 'tblGradoPonderado' en el archivo Excel.")
