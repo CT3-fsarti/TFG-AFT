@@ -95,6 +95,9 @@ html_flag_es = f"<img src='data:image/png;base64,{assets_status['Flag ES B64']}'
 html_flag_fr = f"<img src='data:image/png;base64,{assets_status['Flag FR B64']}' class='flag-inline'>" if assets_status['Flag FR B64'] else ""
 html_flag_gb = f"<img src='data:image/png;base64,{assets_status['Flag GB B64']}' class='flag-inline'>" if assets_status['Flag GB B64'] else ""
 
+# ==========================================
+# 2. ESTRUCTURA DE DISEÑO PRINCIPAL (COLUMNAS)
+# ==========================================
 col_main, col_profile = st.columns([3, 1])
 
 with col_profile:
@@ -113,6 +116,7 @@ with col_profile:
         </div>
         """, unsafe_allow_html=True)
         
+        # STACK TECNOLÓGICO
         st.markdown("""
         <hr style="margin: 10px 0 15px 0; border-top: 1px solid #E6E9EF;">
         <p class='centered-text' style='font-size: 15px; color: #333; margin-bottom: 10px;'><strong>🛠️ Stack Tecnológico</strong></p>
@@ -160,9 +164,9 @@ with col_main:
     st.markdown("## 🎓 Sinopsis del Proyecto")
     with st.expander("Leer Sinopsis / Abstract Completo", expanded=False):
         tab_es, tab_en, tab_fr = st.tabs(["Español", "English", "Français"])
-        with tab_es: st.markdown("<div style='font-size: 15px; text-align: justify; color: #333;'>La Financiación del Terrorismo (FT) consiste en la captación de fondos... Este trabajo fundamenta su análisis en información reciente... El modelo resultante constituye una representación realista y fundamentada empíricamente, derivando en un modelo analítico altamente útil para la inteligencia financiera y el diseño de políticas de seguridad.</div>", unsafe_allow_html=True)
-        with tab_en: st.markdown("<div style='font-size: 15px; text-align: justify; color: #333;'>Terrorist Financing (TF) involves the raising of funds... This paper bases its analysis on recent information... The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>", unsafe_allow_html=True)
-        with tab_fr: st.markdown("<div style='font-size: 15px; text-align: justify; color: #333;'>Le Financement du Terrorisme (FT) consiste en la collecte de fonds... Ce travail fonde son analyse sur des informations récentes... Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.</div>", unsafe_allow_html=True)
+        with tab_es: st.markdown("<div style='font-size: 15px; text-align: justify; color: #333;'>La Financiación del Terrorismo (FT) consiste en la captación de fondos, lo cual abarca el proceso de solicitud, recaudación, provisión y puesta a disposición de dinero o activos con el fin de facilitar o potenciar la capacidad de cualquier persona u organización para llevar a cabo actividades relacionadas con el terrorismo. En el caso concreto de España, la Ley 10/2010 establece un marco riguroso frente al suministro, depósito o distribución de fondos.<br><br>Tanto los grandes grupos organizados como las pequeñas células e incluso los actores individuales necesitan dinero para el desarrollo de la actividad terrorista. La literatura académica y los informes institucionales coinciden en que la falta de fondos limita drásticamente su capacidad operativa, siendo la FT un elemento vertebrador del terrorismo global.<br><br>Este trabajo fundamenta su análisis en información reciente, utilizando ejemplos observados en los últimos años que resultan representativos de las dinámicas contemporáneas. El objetivo principal consiste en construir una <strong>simulación de red de financiación del terrorismo</strong> basada en la evidencia recogida en la literatura especializada (tipologías del GAFI, EBA, etc.).<br><br>Sobre dicha simulación se realiza un análisis estructural mediante herramientas propias del análisis de redes (Economía de Redes) y la Teoría de Juegos, incluyendo el estudio de métricas de centralidad, la importancia relativa de los nodos clave (chokepoints) y la resiliencia del sistema ante intervenciones policiales. El modelo resultante constituye una representación realista y fundamentada empíricamente, derivando en un modelo analítico altamente útil para la inteligencia financiera y el diseño de políticas de seguridad.</div>", unsafe_allow_html=True)
+        with tab_en: st.markdown("<div style='font-size: 15px; text-align: justify; color: #333;'>Terrorist Financing (TF) involves the raising of funds, which encompasses the process of soliciting, collecting, providing, and making available money or assets to facilitate or enhance the capacity of any individual or organization to carry out terrorist activities. In Spain, Law 10/2010 establishes a rigorous framework against the supply, deposit, or distribution of funds.<br><br>Large organized groups, small cells, and lone actors require money to carry out terrorist activities. Academic literature and institutional reports agree that a lack of funds drastically limits their operational capacity, making TF a structural backbone of global terrorism.<br><br>This paper bases its analysis on recent information, using examples observed in recent years that are representative of contemporary dynamics. The main objective is to build a <strong>simulation of a terrorist financing network</strong> based on evidence gathered from specialized literature (FATF typologies, EBA, etc.).<br><br>A structural analysis is performed on this simulation using Network Economics and Game Theory, including the study of centrality metrics, the relative importance of key nodes (chokepoints), and the system's resilience to law enforcement interventions. The resulting model constitutes a realistic and empirically grounded representation, resulting in an analytical model highly useful for financial intelligence and security policy design.</div>", unsafe_allow_html=True)
+        with tab_fr: st.markdown("<div style='font-size: 15px; text-align: justify; color: #333;'>Le Financement du Terrorisme (FT) consiste en la collecte de fonds, ce qui englobe le processus de sollicitation, de rassemblement, de fourniture et de mise à disposition d'argent ou d'actifs dans le but de faciliter la capacité à mener des activités terroristes. En Espagne, la loi 10/2010 établit un cadre rigoureux contre la fourniture ou la distribution de fonds.<br><br>Les grands groupes organisés, les petites cellules et les acteurs individuels ont besoin d'argent pour développer leurs activités terroristes. La littérature académique s'accorde à dire que le manque de fonds limite considérablement leur capacité opérationnelle, le FT étant un élément structurant du terrorisme mondial.<br><br>Ce travail fonde son analyse sur des informations récentes, en utilisant des exemples représentatifs des dynamiques contemporaines. L'objectif principal est de construire une <strong>simulation d'un réseau de financement du terrorisme</strong> basée sur les preuves recueillies dans la littérature spécialisée (typologies du GAFI, ABE, etc.).<br><br>Une analyse structurelle est réalisée sur cette simulation à l'aide de l'Économie des Réseaux et de la Théorie des Jeux, incluant l'étude des métriques de centralité, l'importance des nœuds clés (points d'étranglement) et la résilience du système face aux interventions policières. Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.</div>", unsafe_allow_html=True)
 
 # ==========================================
 # 3. FUNCIONES DE CARGA Y ESTILADO
@@ -393,8 +397,8 @@ if wb is not None:
     # ==========================================
     # FASE 4: ASISTENTE DE INTELIGENCIA (VERTEX AI)
     # ==========================================
-    st.markdown("## 🤖 Fase 4: Asistente de Inteligencia (Vertex AI)")
-    st.markdown("Consulta al modelo fundacional sobre vulnerabilidades y estrategias de disrupción policial.")
+    st.markdown("## 🤖 Fase 4: Asistente MarIA (Inteligencia Artificial)")
+    st.markdown("Consulta a MarIA sobre vulnerabilidades, tipologías y tácticas de disrupción policial.")
 
     if not VERTEX_AVAILABLE:
         st.error("⚠️ Falta instalar la librería de Google Cloud (`google-cloud-aiplatform`).")
@@ -408,12 +412,13 @@ if wb is not None:
                 credenciales_gcp = service_account.Credentials.from_service_account_info(credenciales_json)
                 vertexai.init(project="aft-simulator", location="us-central1", credentials=credenciales_gcp)
                 
-                # INSTRUCCIÓN ESTRICTA PARA EL MODELO
+                # INSTRUCCIÓN ESTRICTA PARA EL MODELO (System Prompt)
                 rol_analista = """
+                Tu nombre es MarIA (Modelo Analítico de Redes e Inteligencia Artificial).
                 ERES UN SISTEMA EXPERTO EN INTELIGENCIA FINANCIERA (PBC/FT).
                 REGLA 1: Eres un analista especialista en redes de Financiación del Terrorismo. Usa terminología institucional y analítica (chokepoints, tipologías GAFI, resiliencia, nodos clave).
-                REGLA 2: Responde EXCLUSIVAMENTE a preguntas sobre el análisis de la red proporcionada, tácticas de disrupción, prevención de blanqueo o financiación del terrorismo.
-                REGLA 3: Si el usuario te pregunta algo fuera de este ámbito profesional, debes declinar cortésmente recordando tu función estricta de analista.
+                REGLA 2: Responde EXCLUSIVAMENTE a preguntas sobre el análisis de la red proporcionada, tácticas de disrupción policial, prevención de blanqueo o financiación del terrorismo.
+                REGLA 3: Si el usuario te pregunta algo fuera de este ámbito profesional (ej. chistes, recetas, cultura general), debes declinar cortésmente recordando tu estricta función como herramienta de inteligencia y redirigiendo la conversación al análisis AFT.
                 """
                 model = GenerativeModel("gemini-2.5-pro")
 
@@ -421,7 +426,7 @@ if wb is not None:
                 if "chat_history" not in st.session_state:
                     st.session_state.chat_history = []
 
-                # Contexto dinámico de la red (se actualiza si apagas un nodo)
+                # Contexto dinámico de la red (se actualiza si apagas un nodo en la tabla de la Fase 1)
                 contexto_red = f"""
                 {rol_analista}
                 
@@ -432,45 +437,52 @@ if wb is not None:
 
                 col_chat1, col_chat2 = st.columns([4, 1])
                 with col_chat2:
-                    if st.button("🔄 Recalcular Análisis", help="Borra la memoria y vuelve a analizar la red"):
+                    if st.button("🔄 Recalcular Análisis", help="Borra la memoria y vuelve a pedir a MarIA que analice la red"):
                         st.session_state.chat_history = []
                         st.rerun()
 
-                # GENERAR DIAGNÓSTICO INICIAL AUTOMÁTICO
+                # ==========================================
+                # EL TRUCO: AUTO-PROMPT INICIAL (Solo se ejecuta 1 vez)
+                # ==========================================
                 if len(st.session_state.chat_history) == 0:
-                    with st.spinner("Generando diagnóstico táctico inicial de la topología..."):
-                        prompt_inicial = f"{contexto_red}\n\nINSTRUCCIÓN: Basándote en el número de actores y rutas, redacta un breve y riguroso diagnóstico inicial (máximo 2 párrafos) sobre el estado de la red y sugiere una primera línea de investigación."
+                    with st.spinner("MarIA está analizando la topología de la red..."):
+                        # Instrucción secreta que el usuario no ve, pero activa a la IA
+                        prompt_inicial = f"{contexto_red}\n\nINSTRUCCIÓN OCULTA DEL SISTEMA: Acaba de arrancar el simulador. Actúa de forma proactiva. Saluda cordialmente presentándote como MarIA (Modelo Analítico de Redes e Inteligencia Artificial). Basándote en el número de actores y rutas activas, redacta un breve y riguroso diagnóstico inicial táctico (máximo 2 párrafos cortos) sobre el estado de la red y sugiere a la analista (Marina) una primera línea de investigación o pregunta que puede hacerte."
                         response = model.generate_content(prompt_inicial)
+                        # Guardamos la respuesta directamente como si fuera de la asistente
                         st.session_state.chat_history.append({"role": "assistant", "content": response.text})
 
-                # DIBUJAR HISTORIAL DE CONVERSACIÓN
+                # DIBUJAR EL HISTORIAL DE CONVERSACIÓN (Incluyendo el diagnóstico automático)
                 for msg in st.session_state.chat_history:
                     st.chat_message(msg["role"]).write(msg["content"])
 
+                # ==========================================
                 # CAJA DE TEXTO PARA PREGUNTAS DEL USUARIO
-                user_query = st.chat_input("Haz una pregunta técnica sobre la red o sobre PBC/FT...")
+                # ==========================================
+                user_query = st.chat_input("Haz una pregunta técnica a MarIA sobre la red o sobre AFT...")
 
                 if user_query:
-                    # Mostrar y guardar pregunta
+                    # Pintar la pregunta del usuario en la pantalla y guardarla
                     st.chat_message("user").write(user_query)
                     st.session_state.chat_history.append({"role": "user", "content": user_query})
 
-                    # Preparar el contexto completo enviando la memoria al modelo
-                    historial_str = "\n".join([f"{'Usuario' if m['role']=='user' else 'Tú'}: {m['content']}" for m in st.session_state.chat_history[-4:]])
+                    # Unir los últimos mensajes para que MarIA tenga "memoria" de la charla
+                    historial_str = "\n".join([f"{'Analista' if m['role']=='user' else 'MarIA'}: {m['content']}" for m in st.session_state.chat_history[-4:]])
                     
+                    # El paquete final que se envía a Gemini
                     prompt_completo = f"""
                     {contexto_red}
                     
                     MEMORIA RECIENTE DE LA CONVERSACIÓN:
                     {historial_str}
                     
-                    Usuario: {user_query}
-                    Tú:
+                    Analista: {user_query}
+                    MarIA:
                     """
 
-                    # Generar respuesta
+                    # La IA "piensa" y responde
                     with st.chat_message("assistant"):
-                        with st.spinner("Analizando..."):
+                        with st.spinner("MarIA está analizando..."):
                             resp = model.generate_content(prompt_completo)
                             st.write(resp.text)
                             st.session_state.chat_history.append({"role": "assistant", "content": resp.text})
