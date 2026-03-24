@@ -197,7 +197,6 @@ def leer_tabla_excel(wb, nombre_tabla_buscada):
 def conf_centrada(df):
     """Genera la configuración nativa de Streamlit para centrar celdas y encabezados de forma forzosa"""
     config = {str(col): st.column_config.Column(alignment="center") for col in df.columns}
-    # Forzar también el centrado del índice si se muestra
     config["_index"] = st.column_config.Column(alignment="center")
     return config
 
@@ -404,7 +403,7 @@ if wb is not None:
             "2️⃣ Costes", 
             "3️⃣ Valor Operativo", 
             "4️⃣ Trade-Off",
-            "5️⃣ Matriz de Distancias",
+            "5️⃣ Distancias",
             "6️⃣ Métricas"
         ])
 
