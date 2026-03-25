@@ -331,27 +331,46 @@ if wb is not None:
     net = Network(height="650px", width="100%", directed=True, bgcolor="#ffffff", font_color="black")
     net.from_nx(G)
     # Configuración de red orgánica (Físicas activadas, sin columnas estrictas)
-    net.set_options("""
-    {
-      "physics": {
+    
+    
+    # ==========================================
+    # MOTOR VISUAL HÍBRIDO: Jerarquía + Físicas de Repulsión
+    # ==========================================
+    opciones_hibridas = f"""
+    {{
+      "layout": {{
+        "hierarchical": {{
+          "enabled": true,
+          "direction": "LR",
+          "sortMethod": "directed",
+          "levelSeparation": {sep_horizontal},
+          "nodeDistance": {sep_vertical}
+        }}
+      }},
+      "physics": {{
         "enabled": true,
-        "barnesHut": {
-          "gravitationalConstant": -3000,
-          "centralGravity": 0.2,
-          "springLength": 200,
+        "solver": "hierarchicalRepulsion",
+        "hierarchicalRepulsion": {{
+          "centralGravity": 0.0,
+          "springLength": 150,
           "springConstant": 0.05,
-          "damping": 0.09,
-          "avoidOverlap": 0.5
-        }
-      },
-      "edges": { 
-        "smooth": { "type": "continuous" }, 
-        "arrows": { "to": { "enabled": true, "scaleFactor": 0.6 } } 
-      },
-      "nodes": { "font": { "size": 16, "face": "Arial" } },
-      "interaction": { "zoomView": true, "dragNodes": true, "hover": true }
-    }
-    """)
+          "nodeDistance": 250,
+          "damping": 0.09
+        }}
+      }},
+      "edges": {{
+        "smooth": {{
+          "type": "dynamic",
+          "forceDirection": "none",
+          "roundness": 0.4
+        }},
+        "arrows": {{ "to": {{ "enabled": true, "scaleFactor": 0.5 }} }}
+      }},
+      "nodes": {{ "font": {{ "size": 16, "face": "Arial" }} }},
+      "interaction": {{ "zoomView": true, "dragNodes": true, "hover": true }}
+    }}
+    """
+    net.set_options(opciones_hibridas)
 
     net.save_graph("mapa_interactivo.html")
 
