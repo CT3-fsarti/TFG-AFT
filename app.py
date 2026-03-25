@@ -330,14 +330,27 @@ if wb is not None:
 
     net = Network(height="650px", width="100%", directed=True, bgcolor="#ffffff", font_color="black")
     net.from_nx(G)
-    net.set_options(f"""
-    {{
-      "layout": {{ "hierarchical": {{ "enabled": true, "direction": "LR", "sortMethod": "directed", "levelSeparation": {sep_horizontal}, "nodeDistance": {sep_vertical}, "treeSpacing": {sep_vertical}, "parentCentralization": true }} }},
-      "physics": {{ "enabled": false }},
-      "edges": {{ "smooth": {{ "type": "cubicBezier", "forceDirection": "horizontal", "roundness": 0.4 }}, "arrows": {{ "to": {{ "enabled": true, "scaleFactor": 0.5 }} }} }},
-      "nodes": {{ "font": {{ "size": 16, "face": "Arial" }} }},
-      "interaction": {{ "zoomView": true, "dragNodes": true, "hover": true }}
-    }}
+    # Configuración de red orgánica (Físicas activadas, sin columnas estrictas)
+    net.set_options("""
+    {
+      "physics": {
+        "enabled": true,
+        "barnesHut": {
+          "gravitationalConstant": -3000,
+          "centralGravity": 0.2,
+          "springLength": 200,
+          "springConstant": 0.05,
+          "damping": 0.09,
+          "avoidOverlap": 0.5
+        }
+      },
+      "edges": { 
+        "smooth": { "type": "continuous" }, 
+        "arrows": { "to": { "enabled": true, "scaleFactor": 0.6 } } 
+      },
+      "nodes": { "font": { "size": 16, "face": "Arial" } },
+      "interaction": { "zoomView": true, "dragNodes": true, "hover": true }
+    }
     """)
 
     net.save_graph("mapa_interactivo.html")
