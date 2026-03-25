@@ -317,13 +317,13 @@ if wb is not None:
         if mask_r.any():
             capa_r_base = int(df_nodos.loc[mask_r, 'Capa'].min())
             
-            # 1. Empujamos los nodos de destino 2 columnas a la derecha
-            df_nodos.loc[df_nodos['Capa'] > capa_r_base, 'Capa'] += 2
+            # 1. Empujamos los nodos de destino 1 sola columna a la derecha para hacer el hueco justo
+            df_nodos.loc[df_nodos['Capa'] > capa_r_base, 'Capa'] += 1
             
-            # 2. Repartimos los nodos R en 3 columnas distintas en zigzag
+            # 2. Repartimos los nodos R en 2 columnas distintas en zigzag (par/impar)
             r_indices = df_nodos[mask_r].index
             for i, idx in enumerate(r_indices):
-                df_nodos.loc[idx, 'Capa'] = capa_r_base + (i % 3)
+                df_nodos.loc[idx, 'Capa'] = capa_r_base + (i % 2)
 
     nodos_activos = df_nodos[df_nodos['Activo'] == 1]
     enlaces_activos = df_enlaces[df_enlaces['Activo'] == 1]
