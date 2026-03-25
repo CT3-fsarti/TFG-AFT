@@ -116,7 +116,6 @@ with col_profile:
         </div>
         """, unsafe_allow_html=True)
         
-        # STACK TECNOLÓGICO
         st.markdown("""
         <hr style="margin: 10px 0 15px 0; border-top: 1px solid #E6E9EF;">
         <p class='centered-text' style='font-size: 15px; color: #333; margin-bottom: 10px;'><strong>🛠️ Stack Tecnológico</strong></p>
@@ -169,21 +168,28 @@ with col_main:
         with tab_fr: st.markdown("<div style='font-size: 15px; text-align: justify; color: #333;'>Le Financement du Terrorisme (FT) consiste en la collecte de fonds, ce qui englobe le processus de sollicitation, de rassemblement, de fourniture et de mise à disposition d'argent ou d'actifs dans le but de faciliter la capacité à mener des activités terroristes. En Espagne, la loi 10/2010 établit un cadre rigoureux contre la fourniture ou la distribution de fonds.<br><br>Les grands groupes organisés, les petites cellules et les acteurs individuels ont besoin d'argent pour développer leurs activités terroristes. La littérature académique s'accorde à dire que le manque de fonds limite considérablement leur capacité opérationnelle, le FT étant un élément structurant du terrorisme mondial.<br><br>Ce travail fonde son analyse sur des informations récentes, en utilisant des exemples représentatifs des dynamiques contemporaines. L'objectif principal est de construire une <strong>simulation d'un réseau de financement du terrorisme</strong> basée sur les preuves recueillies dans la littérature spécialisée (typologies du GAFI, ABE, etc.).<br><br>Une analyse structurelle est réalisée sur cette simulation à l'aide de l'Économie des Réseaux et de la Théorie des Jeux, incluant l'étude des métriques de centralité, l'importance des nœuds clés (points d'étranglement) et la résilience du système face aux interventions policières. Le modèle qui en résulte constitue une représentation réaliste et empiriquement fondée, aboutissant à un outil analytique très utile pour le renseignement financier.</div>", unsafe_allow_html=True)
 
 # ==========================================
-# 3. FUNCIONES DE CARGA Y ESTILADO
+# 3. FUNCIONES DE CARGA Y ESTILADO CORREGIDAS
 # ==========================================
 def leer_tabla_excel(wb, nombre_tabla_buscada):
+    """Lector universal resistente a mayúsculas/minúsculas"""
+    nombre_buscado = nombre_tabla_buscada.lower()
     for hoja in wb.worksheets:
-        if nombre_tabla_buscada in hoja.tables:
-            rango = hoja.tables[nombre_tabla_buscada].ref
-            datos_celdas = hoja[rango]
-            filas = [[celda.value for celda in fila] for fila in datos_celdas]
-            return pd.DataFrame(filas[1:], columns=filas[0])
+        for nombre_real in hoja.tables:
+            if nombre_real.lower() == nombre_buscado:
+                rango = hoja.tables[nombre_real].ref
+                datos_celdas = hoja[rango]
+                filas = [[celda.value for celda in fila] for fila in datos_celdas]
+                if len(filas) > 1:
+                    return pd.DataFrame(filas[1:], columns=filas[0])
+                elif len(filas) == 1:
+                    return pd.DataFrame(columns=filas[0])
     return pd.DataFrame() 
 
 def aplicar_estilos(df_in):
+    """Estilado sin el bug de 'Streamlit Magic' (duplicación de tablas)"""
     df_safe = df_in.copy()
     df_safe.columns = df_safe.columns.astype(str)
-    df_safe.loc[:, ~df_safe.columns.duplicated()]
+    df_safe = df_safe.loc[:, ~df_safe.columns.duplicated()]
 
     styler = df_safe.style.set_properties(**{'text-align': 'center'})
     styler = styler.set_table_styles([
@@ -210,8 +216,8 @@ def aplicar_estilo_matriz(df_in, decimales=0):
     df_safe = df_in.copy()
     df_safe.index = df_safe.index.astype(str)
     df_safe.columns = df_safe.columns.astype(str)
-    df_safe.loc[~df_safe.index.duplicated(keep='first')]
-    df_safe.loc[:, ~df_safe.columns.duplicated()]
+    df_safe = df_safe.loc[~df_safe.index.duplicated(keep='first')]
+    df_safe = df_safe.loc[:, ~df_safe.columns.duplicated()]
 
     styler = df_safe.style.set_properties(**{'text-align': 'center'})
     styler = styler.set_table_styles([
@@ -248,7 +254,6 @@ if wb is not None:
     df_enlaces_original = leer_tabla_excel(wb, "tblEnlaces")
     df_pesos = leer_tabla_excel(wb, "tblPesos")
     df_pond_costes = leer_tabla_excel(wb, "tblMatrizPonderadaCostes")
-    # Atención a la capitalización exacta de la tabla en el Excel:
     df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValoroperativo")
     df_tradeoff = leer_tabla_excel(wb, "tblMatrizTradeOff")
     df_distancias = leer_tabla_excel(wb, "tblMatrizDistancias")
@@ -279,25 +284,56 @@ if wb is not None:
         if not df_pesos.empty:
             st.dataframe(aplicar_estilos(df_pesos), use_container_width=True, hide_index=True)
 
-    # Procesamiento interno
+    # --------------------------------------------------------
+    # FUSIÓN INTELIGENTE: Escudo anti-errores de columnas
+    # --------------------------------------------------------
     df_tipos = df_tipos.dropna(how='all')
-    df_nodos = df_nodos_editado.dropna(how='all')
-    df_enlaces = df_enlaces_editado.dropna(subset=['Nodo Origen', 'Nodo Destino'])
+    df_nodos = df_nodos_editado.dropna(how='all').copy()
+    df_enlaces = df_enlaces_editado.dropna(subset=['Nodo Origen', 'Nodo Destino']).copy()
 
+    df_tipos.columns = df_tipos.columns.str.strip()
+    df_nodos.columns = df_nodos.columns.str.strip()
+
+    if 'Capa' in df_tipos.columns and 'Tipo' in df_tipos.columns:
+        df_nodos = pd.merge(df_nodos, df_tipos[['Tipo', 'Capa']], on='Tipo', how='left')
+    else:
+        if 'Tipo' in df_nodos.columns:
+            df_nodos['Capa'] = 0
+
+    if 'Capa' not in df_nodos.columns:
+        df_nodos['Capa'] = 0
+        
+    df_nodos['Capa'] = pd.to_numeric(df_nodos['Capa'], errors='coerce').fillna(0)
     df_nodos['Activo'] = pd.to_numeric(df_nodos['Activo'], errors='coerce')
     df_enlaces['Activo'] = pd.to_numeric(df_enlaces['Activo'], errors='coerce')
 
-    df_nodos = pd.merge(df_nodos, df_tipos[['Tipo', 'Capa']], on='Tipo', how='left')
-    df_nodos['Capa'] = pd.to_numeric(df_nodos['Capa'], errors='coerce').fillna(0)
+    # ==========================================
+    # ALGORITMO DE EXPANSIÓN DE REDISTRIBUIDORES (NODOS "R")
+    # ==========================================
+    if 'Tipo' in df_nodos.columns:
+        df_nodos['Tipo_limpio'] = df_nodos['Tipo'].astype(str).str.strip().str.upper()
+        mask_r = df_nodos['Tipo_limpio'] == 'R'
+        
+        if mask_r.any():
+            capa_r_base = int(df_nodos.loc[mask_r, 'Capa'].min())
+            
+            # 1. Empujamos los nodos de destino 2 columnas a la derecha
+            df_nodos.loc[df_nodos['Capa'] > capa_r_base, 'Capa'] += 2
+            
+            # 2. Repartimos los nodos R en 3 columnas distintas en zigzag
+            r_indices = df_nodos[mask_r].index
+            for i, idx in enumerate(r_indices):
+                df_nodos.loc[idx, 'Capa'] = capa_r_base + (i % 3)
 
     nodos_activos = df_nodos[df_nodos['Activo'] == 1]
     enlaces_activos = df_enlaces[df_enlaces['Activo'] == 1]
 
+    # CONSTRUCCIÓN DEL GRAFO
     G = nx.DiGraph()
-    colores_capa = {'O': '#FF9999', 'I': '#99CCFF', 'G': '#FFCC99', 'D': '#99FF99'}
+    colores_capa = {'O': '#FF9999', 'I': '#99CCFF', 'G': '#FFCC99', 'R': '#FFCC99', 'D': '#99FF99'}
 
     for _, row in nodos_activos.iterrows():
-        tipo_nodo = str(row['Tipo']).strip()
+        tipo_nodo = str(row['Tipo']).strip().upper()
         nombre_nodo = str(row.get('Nombre', ''))
         G.add_node(str(row['NodoID']).strip(), label=str(row['NodoID']).strip() + (" - " + nombre_nodo if nombre_nodo else ""), color=colores_capa.get(tipo_nodo, '#CCCCCC'), level=int(row['Capa']), title=f"Tipo: {str(row.get('Descripción', tipo_nodo))}")
 
@@ -315,7 +351,7 @@ if wb is not None:
             G.add_edge(origen, destino, color=color_flecha, title=f"Exposición: {row.get('Exposición', 'N/A')} | Coste: {row.get('Coste', 'N/A')}")
 
     # ==========================================
-    # FASE 2: TOPOLOGÍA DE LA RED
+    # FASE 2: TOPOLOGÍA DE LA RED (ESTRICTA)
     # ==========================================
     st.markdown("## 🌐 Fase 2: Topología Interactiva de la Red")
     
@@ -330,48 +366,18 @@ if wb is not None:
 
     net = Network(height="650px", width="100%", directed=True, bgcolor="#ffffff", font_color="black")
     net.from_nx(G)
-    # Configuración de red orgánica (Físicas activadas, sin columnas estrictas)
     
-    
-    # ==========================================
-    # MOTOR VISUAL HÍBRIDO: Jerarquía + Físicas de Repulsión
-    # ==========================================
-    opciones_hibridas = f"""
+    # Motor Jerárquico firme sin físicas de repulsión
+    opciones_net = f"""
     {{
-      "layout": {{
-        "hierarchical": {{
-          "enabled": true,
-          "direction": "LR",
-          "sortMethod": "directed",
-          "levelSeparation": {sep_horizontal},
-          "nodeDistance": {sep_vertical}
-        }}
-      }},
-      "physics": {{
-        "enabled": true,
-        "solver": "hierarchicalRepulsion",
-        "hierarchicalRepulsion": {{
-          "centralGravity": 0.0,
-          "springLength": 150,
-          "springConstant": 0.05,
-          "nodeDistance": 250,
-          "damping": 0.09
-        }}
-      }},
-      "edges": {{
-        "smooth": {{
-          "type": "dynamic",
-          "forceDirection": "none",
-          "roundness": 0.4
-        }},
-        "arrows": {{ "to": {{ "enabled": true, "scaleFactor": 0.5 }} }}
-      }},
+      "layout": {{ "hierarchical": {{ "enabled": true, "direction": "LR", "sortMethod": "directed", "levelSeparation": {sep_horizontal}, "nodeDistance": {sep_vertical} }} }},
+      "physics": {{ "enabled": false }},
+      "edges": {{ "smooth": {{ "type": "cubicBezier", "forceDirection": "horizontal", "roundness": 0.4 }}, "arrows": {{ "to": {{ "enabled": true, "scaleFactor": 0.5 }} }} }},
       "nodes": {{ "font": {{ "size": 16, "face": "Arial" }} }},
       "interaction": {{ "zoomView": true, "dragNodes": true, "hover": true }}
     }}
     """
-    net.set_options(opciones_hibridas)
-
+    net.set_options(opciones_net)
     net.save_graph("mapa_interactivo.html")
 
     gcol1, gcol2 = st.columns([4, 1])
@@ -451,42 +457,36 @@ if wb is not None:
                 REGLA 2: Responde EXCLUSIVAMENTE a preguntas sobre el análisis de la red proporcionada, tácticas de disrupción policial, prevención de blanqueo o financiación del terrorismo basándote rigurosamente en las matrices matemáticas y el grafo.
                 REGLA 3: Si el usuario te pregunta algo fuera de este ámbito profesional, debes declinar cortésmente recordando tu estricta función como herramienta de inteligencia AFTIA.
                 """
+                
                 model = GenerativeModel("gemini-2.5-pro")
 
                 if "chat_history" not in st.session_state:
                     st.session_state.chat_history = []
 
                 # ==========================================
-                # EXTRACCIÓN MASIVA DE DATOS PARA AFTIA (100% DE LA RED Y MATRICES)
+                # EXTRACCIÓN MASIVA DE DATOS PARA AFTIA (100%)
                 # ==========================================
-                
-                # 1. Nodos Activos Completos
                 if not nodos_activos.empty:
                     nodos_activos_str = nodos_activos.to_csv(index=False, sep='|')
                 else:
                     nodos_activos_str = "No hay nodos activos."
                 
-                # 2. Nodos Inactivos Completos
                 nodos_inactivos_df = df_nodos[df_nodos['Activo'] == 0]
                 if not nodos_inactivos_df.empty:
                     nodos_inactivos_str = nodos_inactivos_df.to_csv(index=False, sep='|')
                 else:
                     nodos_inactivos_str = "Ninguno. La red está operando al 100% de su capacidad original."
                     
-                # 3. Enlaces Completos
                 if not enlaces_activos.empty:
                     enlaces_str = enlaces_activos.to_csv(index=False, sep='|')
                 else:
                     enlaces_str = "No hay rutas conectando los nodos."
 
-                # 4. Matrices y Métricas
                 metricas_str = df_metricas.to_csv(sep='|') if not df_metricas.empty else "No disponible."
                 tradeoff_str = df_tradeoff.to_csv(sep='|') if not df_tradeoff.empty else "No disponible."
                 costes_str = df_pond_costes.to_csv(sep='|') if not df_pond_costes.empty else "No disponible."
                 valor_op_str = df_pond_valor.to_csv(sep='|') if not df_pond_valor.empty else "No disponible."
                 distancias_str = df_distancias.to_csv(sep='|') if not df_distancias.empty else "No disponible."
-                
-                # 5. Adyacencia en Vivo
                 adyacencia_str = nx.to_pandas_adjacency(G, dtype=int).to_csv(sep='|') if len(G.nodes) > 0 else "No disponible."
 
                 contexto_red = f"""
@@ -532,7 +532,6 @@ if wb is not None:
                         st.session_state.chat_history = []
                         st.rerun()
 
-                # AUTO-PROMPT INICIAL
                 if len(st.session_state.chat_history) == 0:
                     with st.spinner("AFTIA está cruzando los datos topológicos y las matrices matemáticas..."):
                         prompt_inicial = f"{contexto_red}\n\nINSTRUCCIÓN OCULTA DEL SISTEMA: Acaba de arrancar el simulador. Actúa de forma proactiva. Saluda cordialmente presentándote como AFTIA. Tienes acceso a todos los datos matemáticos y estructurales arriba. Redacta un diagnóstico analítico inicial riguroso (máximo 2 párrafos) apoyándote en las métricas de centralidad y la matriz de trade-off provistas para identificar quién es el actor clave (Chokepoint) y sugiere a la analista una primera línea de investigación."
