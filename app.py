@@ -210,8 +210,8 @@ def aplicar_estilo_matriz(df_in, decimales=0):
     df_safe = df_in.copy()
     df_safe.index = df_safe.index.astype(str)
     df_safe.columns = df_safe.columns.astype(str)
-    df_safe = df_safe.loc[~df_safe.index.duplicated(keep='first')]
-    df_safe = df_safe.loc[:, ~df_safe.columns.duplicated()]
+    df_safe.loc[~df_safe.index.duplicated(keep='first')]
+    df_safe.loc[:, ~df_safe.columns.duplicated()]
 
     styler = df_safe.style.set_properties(**{'text-align': 'center'})
     styler = styler.set_table_styles([
@@ -248,6 +248,7 @@ if wb is not None:
     df_enlaces_original = leer_tabla_excel(wb, "tblEnlaces")
     df_pesos = leer_tabla_excel(wb, "tblPesos")
     df_pond_costes = leer_tabla_excel(wb, "tblMatrizPonderadaCostes")
+    # Atención a la capitalización exacta de la tabla en el Excel:
     df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValoroperativo")
     df_tradeoff = leer_tabla_excel(wb, "tblMatrizTradeOff")
     df_distancias = leer_tabla_excel(wb, "tblMatrizDistancias")
@@ -397,8 +398,8 @@ if wb is not None:
     # ==========================================
     # FASE 4: ASISTENTE DE INTELIGENCIA (VERTEX AI)
     # ==========================================
-    st.markdown("## 🤖 Fase 4: Asistente MarIA (Inteligencia Artificial)")
-    st.markdown("Consulta a MarIA sobre vulnerabilidades, tipologías y tácticas de disrupción policial.")
+    st.markdown("## 🤖 Fase 4: Asistente AFTIA")
+    st.markdown("Consulta a AFTIA sobre vulnerabilidades, tipologías y tácticas de disrupción policial en base a los datos matemáticos y estructurales de la red.")
 
     if not VERTEX_AVAILABLE:
         st.error("⚠️ Falta instalar la librería de Google Cloud (`google-cloud-aiplatform`).")
@@ -407,69 +408,116 @@ if wb is not None:
             if "gcp_service_account_json" not in st.secrets:
                 st.warning("⚠️ Faltan las credenciales en Streamlit Secrets.")
             else:
-                # Inicializar Vertex AI
                 credenciales_json = json.loads(st.secrets["gcp_service_account_json"], strict=False)
                 credenciales_gcp = service_account.Credentials.from_service_account_info(credenciales_json)
                 vertexai.init(project="aft-simulator", location="us-central1", credentials=credenciales_gcp)
                 
-                # INSTRUCCIÓN ESTRICTA PARA EL MODELO (System Prompt)
                 rol_analista = """
-                Tu nombre es MarIA (Modelo Analítico de Redes e Inteligencia Artificial).
+                Tu nombre en clave es AFTIA (Analizador de Financiación del Terrorismo mediante Inteligencia Artificial).
                 ERES UN SISTEMA EXPERTO EN INTELIGENCIA FINANCIERA (PBC/FT).
                 REGLA 1: Eres un analista especialista en redes de Financiación del Terrorismo. Usa terminología institucional y analítica (chokepoints, tipologías GAFI, resiliencia, nodos clave).
-                REGLA 2: Responde EXCLUSIVAMENTE a preguntas sobre el análisis de la red proporcionada, tácticas de disrupción policial, prevención de blanqueo o financiación del terrorismo.
-                REGLA 3: Si el usuario te pregunta algo fuera de este ámbito profesional (ej. chistes, recetas, cultura general), debes declinar cortésmente recordando tu estricta función como herramienta de inteligencia y redirigiendo la conversación al análisis AFT.
+                REGLA 2: Responde EXCLUSIVAMENTE a preguntas sobre el análisis de la red proporcionada, tácticas de disrupción policial, prevención de blanqueo o financiación del terrorismo basándote rigurosamente en las matrices matemáticas y el grafo.
+                REGLA 3: Si el usuario te pregunta algo fuera de este ámbito profesional, debes declinar cortésmente recordando tu estricta función como herramienta de inteligencia AFTIA.
                 """
                 model = GenerativeModel("gemini-2.5-pro")
 
-                # INICIALIZAR MEMORIA DE CHAT
                 if "chat_history" not in st.session_state:
                     st.session_state.chat_history = []
 
-                # Contexto dinámico de la red (se actualiza si apagas un nodo en la tabla de la Fase 1)
+                # ==========================================
+                # EXTRACCIÓN MASIVA DE DATOS PARA AFTIA (100% DE LA RED Y MATRICES)
+                # ==========================================
+                
+                # 1. Nodos Activos Completos
+                if not nodos_activos.empty:
+                    nodos_activos_str = nodos_activos.to_csv(index=False, sep='|')
+                else:
+                    nodos_activos_str = "No hay nodos activos."
+                
+                # 2. Nodos Inactivos Completos
+                nodos_inactivos_df = df_nodos[df_nodos['Activo'] == 0]
+                if not nodos_inactivos_df.empty:
+                    nodos_inactivos_str = nodos_inactivos_df.to_csv(index=False, sep='|')
+                else:
+                    nodos_inactivos_str = "Ninguno. La red está operando al 100% de su capacidad original."
+                    
+                # 3. Enlaces Completos
+                if not enlaces_activos.empty:
+                    enlaces_str = enlaces_activos.to_csv(index=False, sep='|')
+                else:
+                    enlaces_str = "No hay rutas conectando los nodos."
+
+                # 4. Matrices y Métricas
+                metricas_str = df_metricas.to_csv(sep='|') if not df_metricas.empty else "No disponible."
+                tradeoff_str = df_tradeoff.to_csv(sep='|') if not df_tradeoff.empty else "No disponible."
+                costes_str = df_pond_costes.to_csv(sep='|') if not df_pond_costes.empty else "No disponible."
+                valor_op_str = df_pond_valor.to_csv(sep='|') if not df_pond_valor.empty else "No disponible."
+                distancias_str = df_distancias.to_csv(sep='|') if not df_distancias.empty else "No disponible."
+                
+                # 5. Adyacencia en Vivo
+                adyacencia_str = nx.to_pandas_adjacency(G, dtype=int).to_csv(sep='|') if len(G.nodes) > 0 else "No disponible."
+
                 contexto_red = f"""
                 {rol_analista}
                 
-                ESTADO ACTUAL DE LA RED SIMULADA:
+                ESTADO ACTUAL DE LA RED SIMULADA (DATOS COMPLETOS Y MATRICES MATEMÁTICAS):
+                
+                1. RESUMEN:
                 - Nodos (actores) activos: {len(G.nodes)}
                 - Rutas financieras (enlaces) activas: {len(G.edges)}
+                
+                2. BASE DE DATOS DE ACTORES ACTIVOS (Roles y Descripciones completas):
+                {nodos_activos_str}
+                
+                3. ACTORES NEUTRALIZADOS (Arrestados / Desactivados por el usuario):
+                {nodos_inactivos_str}
+                
+                4. TOPOLOGÍA DE RUTAS FINANCIERAS (Costes, Eficiencias y Capacidades operativas):
+                {enlaces_str}
+                
+                5. MÉTRICAS DE CENTRALIDAD (Importancia matemática de cada nodo):
+                {metricas_str}
+                
+                6. MATRIZ DE TRADE-OFF (Equilibrio de Nash, relación coste-beneficio para cada canal):
+                {tradeoff_str}
+                
+                7. MATRIZ PONDERADA DE COSTES (Fricción operativa):
+                {costes_str}
+                
+                8. MATRIZ PONDERADA DE VALOR OPERATIVO (Capacidad y volumen de flujo):
+                {valor_op_str}
+                
+                9. MATRIZ DE DISTANCIAS (Saltos mínimos entre actores):
+                {distancias_str}
+                
+                10. MATRIZ BINARIA DE ADYACENCIA (Conexiones topológicas directas):
+                {adyacencia_str}
                 """
 
                 col_chat1, col_chat2 = st.columns([4, 1])
                 with col_chat2:
-                    if st.button("🔄 Recalcular Análisis", help="Borra la memoria y vuelve a pedir a MarIA que analice la red"):
+                    if st.button("🔄 Recalcular Análisis", help="Borra la memoria y vuelve a pedir a AFTIA que analice todos los datos en vivo de la red"):
                         st.session_state.chat_history = []
                         st.rerun()
 
-                # ==========================================
-                # EL TRUCO: AUTO-PROMPT INICIAL (Solo se ejecuta 1 vez)
-                # ==========================================
+                # AUTO-PROMPT INICIAL
                 if len(st.session_state.chat_history) == 0:
-                    with st.spinner("MarIA está analizando la topología de la red..."):
-                        # Instrucción secreta que el usuario no ve, pero activa a la IA
-                        prompt_inicial = f"{contexto_red}\n\nINSTRUCCIÓN OCULTA DEL SISTEMA: Acaba de arrancar el simulador. Actúa de forma proactiva. Saluda cordialmente presentándote como MarIA (Modelo Analítico de Redes e Inteligencia Artificial). Basándote en el número de actores y rutas activas, redacta un breve y riguroso diagnóstico inicial táctico (máximo 2 párrafos cortos) sobre el estado de la red y sugiere a la analista (Marina) una primera línea de investigación o pregunta que puede hacerte."
+                    with st.spinner("AFTIA está cruzando los datos topológicos y las matrices matemáticas..."):
+                        prompt_inicial = f"{contexto_red}\n\nINSTRUCCIÓN OCULTA DEL SISTEMA: Acaba de arrancar el simulador. Actúa de forma proactiva. Saluda cordialmente presentándote como AFTIA. Tienes acceso a todos los datos matemáticos y estructurales arriba. Redacta un diagnóstico analítico inicial riguroso (máximo 2 párrafos) apoyándote en las métricas de centralidad y la matriz de trade-off provistas para identificar quién es el actor clave (Chokepoint) y sugiere a la analista una primera línea de investigación."
                         response = model.generate_content(prompt_inicial)
-                        # Guardamos la respuesta directamente como si fuera de la asistente
                         st.session_state.chat_history.append({"role": "assistant", "content": response.text})
 
-                # DIBUJAR EL HISTORIAL DE CONVERSACIÓN (Incluyendo el diagnóstico automático)
                 for msg in st.session_state.chat_history:
                     st.chat_message(msg["role"]).write(msg["content"])
 
-                # ==========================================
-                # CAJA DE TEXTO PARA PREGUNTAS DEL USUARIO
-                # ==========================================
-                user_query = st.chat_input("Haz una pregunta técnica a MarIA sobre la red o sobre AFT...")
+                user_query = st.chat_input("Haz una pregunta técnica matemática o táctica a AFTIA...")
 
                 if user_query:
-                    # Pintar la pregunta del usuario en la pantalla y guardarla
                     st.chat_message("user").write(user_query)
                     st.session_state.chat_history.append({"role": "user", "content": user_query})
 
-                    # Unir los últimos mensajes para que MarIA tenga "memoria" de la charla
-                    historial_str = "\n".join([f"{'Analista' if m['role']=='user' else 'MarIA'}: {m['content']}" for m in st.session_state.chat_history[-4:]])
+                    historial_str = "\n".join([f"{'Analista' if m['role']=='user' else 'AFTIA'}: {m['content']}" for m in st.session_state.chat_history[-4:]])
                     
-                    # El paquete final que se envía a Gemini
                     prompt_completo = f"""
                     {contexto_red}
                     
@@ -477,12 +525,11 @@ if wb is not None:
                     {historial_str}
                     
                     Analista: {user_query}
-                    MarIA:
+                    AFTIA:
                     """
 
-                    # La IA "piensa" y responde
                     with st.chat_message("assistant"):
-                        with st.spinner("MarIA está analizando..."):
+                        with st.spinner("AFTIA está evaluando las matrices..."):
                             resp = model.generate_content(prompt_completo)
                             st.write(resp.text)
                             st.session_state.chat_history.append({"role": "assistant", "content": resp.text})
