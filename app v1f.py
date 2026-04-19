@@ -7,6 +7,9 @@ from openpyxl import load_workbook
 import os
 import base64
 import json
+from io import BytesIO
+
+from ft_excel_bridge import INPUT_TABLES, WorkbookSchemaError, build_artifacts, load_table_frame, prepare_base_tables
 
 # ==========================================
 # ESCUDO PROTECTOR PARA VERTEX AI
@@ -197,14 +200,33 @@ with col_main:
 # ==========================================
 # 3. FUNCIONES DE CARGA Y ESTILADO
 # ==========================================
-def leer_tabla_excel(wb, nombre_tabla_buscada):
-    for hoja in wb.worksheets:
-        if nombre_tabla_buscada in hoja.tables:
-            rango = hoja.tables[nombre_tabla_buscada].ref
-            datos_celdas = hoja[rango]
-            filas = [[celda.value for celda in fila] for fila in datos_celdas]
-            return pd.DataFrame(filas[1:], columns=filas[0])
-    return pd.DataFrame() 
+SCENARIO_DEFINITIONS = [
+    {
+        "id": "estrella",
+        "label": "Estrella",
+        "description": "Activa o desactiva nodos y enlaces para quedarte con una topologia centralizada.",
+    },
+    {
+        "id": "anillo",
+        "label": "Anillo",
+        "description": "Usa la Meta-Red como base y deja activas solo las rutas que formen un circuito.",
+    },
+    {
+        "id": "multi_hub",
+        "label": "Multi-Hub",
+        "description": "Construye una red con varios nodos concentradores comparables entre si.",
+    },
+]
+
+DEFAULT_WORKBOOKS = ["Diseño Red FT v5a.xlsm", "Diseño Red FT.xlsx"]
+METRIC_COLUMN_ORDER = [
+    "Distancia media al destino final D1",
+    "Distancia media total de la red",
+    "Cercania armonica media de la red",
+    "Eficiencia global de la red",
+    "Centralizacion de la red",
+]
+
 
 def aplicar_estilos(df_in):
     """Estilado para las tablas de la Fase 1: Todo centrado y números a 0 decimales"""
@@ -259,258 +281,453 @@ def aplicar_estilo_matriz(df_in, decimales=0):
         
     return styler.format(formato_celda)
 
+
+def copiar_base(base_modelo):
+    return {clave: df.copy(deep=True) for clave, df in base_modelo.items()}
+
+
+def buscar_workbook_por_defecto():
+    for candidate in DEFAULT_WORKBOOKS:
+        if os.path.exists(candidate):
+            return candidate
+    return None
+
+
+@st.cache_data(show_spinner=False)
+def cargar_modelo_desde_bytes(workbook_bytes):
+    workbook = load_workbook(BytesIO(workbook_bytes), data_only=True, keep_vba=True)
+    frames = {
+        alias: load_table_frame(workbook, table_name)
+        for alias, table_name in INPUT_TABLES.items()
+    }
+    return prepare_base_tables(frames)
+
+
+def construir_editor_nodos(base_modelo):
+    capas = base_modelo["tipos_nodo"][["tipo", "descripcion", "capa"]].drop_duplicates()
+    nodos = base_modelo["nodos"].merge(capas, on="tipo", how="left")
+    vista = nodos[["activo", "nodoid", "nombre", "tipo", "descripcion", "capa"]].copy()
+    vista["activo"] = vista["activo"].fillna(0).astype(int).eq(1)
+    vista = vista.rename(
+        columns={
+            "activo": "Activo",
+            "nodoid": "NodoID",
+            "nombre": "Nombre",
+            "tipo": "Tipo",
+            "descripcion": "Descripcion",
+            "capa": "Capa",
+        }
+    )
+    vista.index = vista["NodoID"].astype(str)
+    return vista
+
+
+def construir_editor_enlaces(base_modelo):
+    nombres_nodo = base_modelo["nodos"].set_index("nodoid")["nombre"].to_dict()
+    enlaces = base_modelo["enlaces"][["activo", "nodo_inicial", "nodo_final", "canal"]].copy()
+    enlaces["nombre_origen"] = enlaces["nodo_inicial"].map(nombres_nodo)
+    enlaces["nombre_destino"] = enlaces["nodo_final"].map(nombres_nodo)
+    vista = enlaces[["activo", "nodo_inicial", "nombre_origen", "nodo_final", "nombre_destino", "canal"]].copy()
+    vista["activo"] = vista["activo"].fillna(0).astype(int).eq(1)
+    vista = vista.rename(
+        columns={
+            "activo": "Activo",
+            "nodo_inicial": "Nodo Inicial",
+            "nombre_origen": "Nombre Origen",
+            "nodo_final": "Nodo Final",
+            "nombre_destino": "Nombre Destino",
+            "canal": "Canal",
+        }
+    )
+    vista.index = base_modelo["enlaces"].index
+    return vista
+
+
+def aplicar_activos(base_modelo, nodos_editados, enlaces_editados):
+    escenario = copiar_base(base_modelo)
+    nodos_activos = nodos_editados["Activo"].astype(bool).astype(int).to_dict()
+    enlaces_activos = enlaces_editados["Activo"].astype(bool).astype(int).to_dict()
+
+    escenario["nodos"]["activo"] = (
+        escenario["nodos"]["nodoid"].map(nodos_activos).fillna(0).astype(int)
+    )
+    escenario["enlaces"]["activo"] = (
+        escenario["enlaces"].index.to_series().map(enlaces_activos).fillna(0).astype(int)
+    )
+    return escenario
+
+
+def construir_grafo(base_modelo, red):
+    colores_tipo = {
+        "O": "#D66D75",
+        "C": "#E8A66B",
+        "I": "#5DA9E9",
+        "G": "#7BC47F",
+        "D": "#6C5CE7",
+    }
+    tipos = base_modelo["tipos_nodo"][["tipo", "descripcion", "capa"]].drop_duplicates()
+    nodos = base_modelo["nodos"].merge(tipos, on="tipo", how="left")
+    nodos_activos = nodos[nodos["activo"] == 1].copy()
+    enlaces_activos = red[red["activo"] == 1].copy()
+
+    grafo = nx.DiGraph()
+    for row in nodos_activos.itertuples(index=False):
+        nombre = str(row.nombre).strip() if pd.notna(row.nombre) else ""
+        grafo.add_node(
+            str(row.nodoid).strip(),
+            label=str(row.nodoid).strip() + (f" - {nombre}" if nombre else ""),
+            color=colores_tipo.get(str(row.tipo).strip(), "#BFC8D6"),
+            level=int(row.capa) if pd.notna(row.capa) else 0,
+            title=(
+                f"Tipo: {row.tipo}<br>"
+                f"Descripcion: {row.descripcion if pd.notna(row.descripcion) else ''}"
+            ),
+        )
+
+    for row in enlaces_activos.itertuples(index=False):
+        tradeoff = float(row.trade_off_valor_operativo_coste) if pd.notna(row.trade_off_valor_operativo_coste) else 0.0
+        if tradeoff >= 3:
+            color = "#1B9E77"
+        elif tradeoff >= 2:
+            color = "#66A61E"
+        elif tradeoff >= 1:
+            color = "#E6AB02"
+        else:
+            color = "#D95F02"
+        grafo.add_edge(
+            str(row.nodo_inicial).strip(),
+            str(row.nodo_final).strip(),
+            color=color,
+            title=(
+                f"Coste: {row.coste:.3f}<br>"
+                f"Valor operativo: {row.valor_operativo:.3f}<br>"
+                f"Trade-off: {tradeoff:.3f}"
+            ),
+        )
+    return grafo
+
+
+def renderizar_grafo(grafo, scenario_id):
+    if len(grafo.nodes) == 0:
+        st.info("No hay nodos activos en este escenario.")
+        return
+
+    niveles = [data.get("level", 0) for _, data in grafo.nodes(data=True)]
+    num_capas = len(set(niveles)) if niveles else 1
+    max_nodos_por_capa = max(pd.Series(niveles).value_counts()) if niveles else 1
+
+    sep_horizontal = max(int((1440 - 200) / (num_capas - 1 if num_capas > 1 else 1)), 250)
+    sep_vertical = max(int((650 - 120) / max_nodos_por_capa), 60)
+
+    net = Network(height="650px", width="100%", directed=True, bgcolor="#FFFFFF", font_color="#14213D")
+    net.from_nx(grafo)
+    net.set_options(
+        f"""
+        {{
+          "layout": {{ "hierarchical": {{ "enabled": true, "direction": "LR", "sortMethod": "directed", "levelSeparation": {sep_horizontal}, "nodeDistance": {sep_vertical}, "treeSpacing": {sep_vertical}, "parentCentralization": true }} }},
+          "physics": {{ "enabled": false }},
+          "edges": {{ "smooth": {{ "type": "cubicBezier", "forceDirection": "horizontal", "roundness": 0.35 }}, "arrows": {{ "to": {{ "enabled": true, "scaleFactor": 0.55 }} }} }},
+          "nodes": {{ "font": {{ "size": 15, "face": "Arial" }}, "borderWidth": 1.5, "shape": "dot", "size": 18 }},
+          "interaction": {{ "zoomView": true, "dragNodes": true, "hover": true }}
+        }}
+        """
+    )
+    components.html(net.generate_html(name=f"topologia_{scenario_id}.html"), height=680, scrolling=True)
+
+
+def obtener_resumen_metricas(metricas_red):
+    metricas = metricas_red[["metrica", "valor"]].copy()
+    metricas["valor"] = pd.to_numeric(metricas["valor"], errors="coerce").fillna(0.0)
+    return metricas.set_index("metrica")["valor"].to_dict()
+
+
+def construir_fila_comparacion(nombre_topologia, base_modelo, artifacts):
+    metricas = obtener_resumen_metricas(artifacts["metricas_red"])
+    fila = {
+        "Topologia": nombre_topologia,
+        "Nodos activos": int((base_modelo["nodos"]["activo"] == 1).sum()),
+        "Enlaces activos": int((artifacts["red"]["activo"] == 1).sum()),
+    }
+    for metric_name in METRIC_COLUMN_ORDER:
+        fila[metric_name] = float(metricas.get(metric_name, 0.0))
+    return fila
+
+
+def renderizar_metricas_resumen(metricas_red):
+    metricas = obtener_resumen_metricas(metricas_red)
+    cols = st.columns(len(METRIC_COLUMN_ORDER))
+    for col, metric_name in zip(cols, METRIC_COLUMN_ORDER):
+        col.metric(metric_name, f"{metricas.get(metric_name, 0.0):.4f}")
+
+
+def renderizar_detalle_escenario(base_modelo, artifacts, scenario_id):
+    grafo = construir_grafo(base_modelo, artifacts["red"])
+    info_col, metric_col = st.columns([4, 1])
+    with info_col:
+        renderizar_grafo(grafo, scenario_id)
+    with metric_col:
+        st.subheader("Actividad")
+        st.metric("Nodos activos", int((base_modelo["nodos"]["activo"] == 1).sum()))
+        st.metric("Enlaces activos", int((artifacts["red"]["activo"] == 1).sum()))
+        st.metric("Rutas visibles", len(grafo.edges))
+
+    renderizar_metricas_resumen(artifacts["metricas_red"])
+
+    with st.expander("Matrices y metricas del escenario", expanded=False):
+        tab_red, tab_ady, tab_coste, tab_valor, tab_trade, tab_dist, tab_nodos, tab_red_metric = st.tabs([
+            "Red agregada",
+            "Adyacencia",
+            "Costes",
+            "Valor operativo",
+            "Trade-Off",
+            "Distancias minimas",
+            "Metricas por nodo",
+            "Metricas de red",
+        ])
+
+        with tab_red:
+            st.dataframe(aplicar_estilos(artifacts["red"]), use_container_width=True, hide_index=True)
+        with tab_ady:
+            tabla = artifacts["matriz_adyacencia"].set_index("nodo_orig_dest")
+            st.dataframe(aplicar_estilo_matriz(tabla, 0), use_container_width=True)
+        with tab_coste:
+            tabla = artifacts["matriz_costes"].set_index("nodo_orig_dest")
+            st.dataframe(aplicar_estilo_matriz(tabla, 2), use_container_width=True)
+        with tab_valor:
+            tabla = artifacts["matriz_valor_operativo"].set_index("nodo_orig_dest")
+            st.dataframe(aplicar_estilo_matriz(tabla, 2), use_container_width=True)
+        with tab_trade:
+            tabla = artifacts["matriz_tradeoff"].set_index("nodo_orig_dest")
+            st.dataframe(aplicar_estilo_matriz(tabla, 2), use_container_width=True)
+        with tab_dist:
+            tabla = artifacts["matriz_distancias_minimas"].set_index("nodo_orig_dest")
+            st.dataframe(aplicar_estilo_matriz(tabla, 3), use_container_width=True)
+        with tab_nodos:
+            st.dataframe(aplicar_estilos(artifacts["metricas_nodos"]), use_container_width=True, hide_index=True)
+        with tab_red_metric:
+            st.dataframe(aplicar_estilos(artifacts["metricas_red"]), use_container_width=True, hide_index=True)
+
+
+def obtener_estado_editor(clave_estado, dataframe_default):
+    dataframe_estado = st.session_state.get(clave_estado)
+    if isinstance(dataframe_estado, pd.DataFrame):
+        return dataframe_estado.copy(deep=True)
+    dataframe_inicial = dataframe_default.copy(deep=True)
+    st.session_state[clave_estado] = dataframe_inicial
+    return dataframe_inicial
+
+
+def renderizar_pestana_topologia(base_modelo, scenario_id, description, editable):
+    st.caption(description)
+    nodos_default = construir_editor_nodos(base_modelo)
+    enlaces_default = construir_editor_enlaces(base_modelo)
+    clave_estado_nodos = f"estado_nodos_{scenario_id}"
+    clave_estado_enlaces = f"estado_enlaces_{scenario_id}"
+    nodos_actuales = obtener_estado_editor(clave_estado_nodos, nodos_default)
+    enlaces_actuales = obtener_estado_editor(clave_estado_enlaces, enlaces_default)
+
+    if editable:
+        columnas_nodos_bloqueadas = ["NodoID", "Nombre", "Tipo", "Descripcion", "Capa"]
+        columnas_enlaces_bloqueadas = ["Nodo Inicial", "Nombre Origen", "Nodo Final", "Nombre Destino", "Canal"]
+        texto_nodos = "Activa o desactiva nodos para construir la topologia sobre la Meta-Red."
+        texto_enlaces = "Activa o desactiva enlaces concretos para cerrar o abrir rutas dentro del escenario."
+        titulo_configuracion = "Configuracion del escenario"
+    else:
+        columnas_nodos_bloqueadas = list(nodos_default.columns)
+        columnas_enlaces_bloqueadas = list(enlaces_default.columns)
+        texto_nodos = "Referencia base de nodos de la Meta-Red."
+        texto_enlaces = "Referencia base de enlaces de la Meta-Red."
+        titulo_configuracion = "Configuracion de referencia"
+
+    escenario_base = aplicar_activos(base_modelo, nodos_actuales, enlaces_actuales) if editable else copiar_base(base_modelo)
+    artifacts = build_artifacts(escenario_base)
+    renderizar_detalle_escenario(escenario_base, artifacts, scenario_id)
+
+    with st.expander(titulo_configuracion, expanded=False):
+        subtab1, subtab2 = st.tabs(["Nodos", "Enlaces"])
+        with subtab1:
+            st.markdown(texto_nodos)
+            nodos_editados = st.data_editor(
+                nodos_actuales,
+                key=f"editor_nodos_{scenario_id}",
+                hide_index=True,
+                use_container_width=True,
+                disabled=columnas_nodos_bloqueadas,
+                column_config={
+                    "Activo": st.column_config.CheckboxColumn("Activo"),
+                },
+            )
+        with subtab2:
+            st.markdown(texto_enlaces)
+            enlaces_editados = st.data_editor(
+                enlaces_actuales,
+                key=f"editor_enlaces_{scenario_id}",
+                hide_index=True,
+                use_container_width=True,
+                disabled=columnas_enlaces_bloqueadas,
+                column_config={
+                    "Activo": st.column_config.CheckboxColumn("Activo"),
+                },
+            )
+
+    if not nodos_editados.equals(nodos_actuales) or not enlaces_editados.equals(enlaces_actuales):
+        st.session_state[clave_estado_nodos] = nodos_editados.copy(deep=True)
+        st.session_state[clave_estado_enlaces] = enlaces_editados.copy(deep=True)
+        st.rerun()
+
+    return escenario_base, artifacts
+
 # ==========================================
 # 4. FLUJO DE DATOS
 # ==========================================
 st.markdown("---")
 st.markdown("<div style='text-align: center; color: #555; font-size: 14px;'>FLUJO DEL SIMULADOR</div>", unsafe_allow_html=True)
 
-archivo_subido = st.file_uploader("Sube tu archivo Excel alternativo (Opcional)", type=["xlsx"])
+archivo_subido = st.file_uploader("Sube tu archivo Excel alternativo (Opcional)", type=["xlsm", "xlsx"])
 
-wb = None
+workbook_bytes = None
+workbook_source = None
 if archivo_subido is not None:
-    wb = load_workbook(archivo_subido, data_only=True)
-elif os.path.exists("Diseño Red FT.xlsx"):
-    wb = load_workbook("Diseño Red FT.xlsx", data_only=True)
+    workbook_bytes = archivo_subido.getvalue()
+    workbook_source = archivo_subido.name
 else:
-    st.info("💡 Sube un archivo Excel para comenzar, o asegúrate de que el archivo 'Diseño Red FT.xlsx' esté en la misma carpeta que este script para que se cargue automáticamente.")
-
-if wb is not None:
-    df_tipos = leer_tabla_excel(wb, "tblTiposDeNodo")
-    df_nodos_original = leer_tabla_excel(wb, "tblNodos")
-    df_enlaces_original = leer_tabla_excel(wb, "tblEnlaces")
-    df_pesos = leer_tabla_excel(wb, "tblPesos")
-    df_pond_costes = leer_tabla_excel(wb, "tblMatrizPonderadaCostes")
-    df_pond_valor = leer_tabla_excel(wb, "tblMatrizPonderadaValoroperativo")
-    df_tradeoff = leer_tabla_excel(wb, "tblMatrizTradeOff")
-    df_distancias = leer_tabla_excel(wb, "tblMatrizDistancias")
-    df_metricas = leer_tabla_excel(wb, "tblGradoPonderado")
-
-    # ==========================================
-    # FASE 1: BASE DE DATOS Y PARAMETRIZACIÓN
-    # ==========================================
-    st.markdown("## ⚙️ Fase 1: Base de Datos y Parametrización")
-    st.markdown("Revisa las entidades, rutas y la metodología de pesos aplicada al modelo.")
-
-    tab_sim1, tab_sim2, tab_sim3, tab_sim4 = st.tabs(["🟢 Nodos (Actores)", "🔗 Enlaces (Rutas)", "🏷️ Tipos de Nodo", "⚖️ Matriz de Pesos (Metodología)"])
-
-    with tab_sim1:
-        st.info("💡 Simula el arresto de un actor cambiando su columna **Activo** a 0.")
-        cols_nodos = [c for c in ['Activo', 'NodoID', 'Nombre', 'Tipo', 'Descripción'] if c in df_nodos_original.columns]
-        if not cols_nodos: cols_nodos = df_nodos_original.columns.tolist()
-        df_n_sub = df_nodos_original[cols_nodos]
-        df_nodos_editado = st.data_editor(aplicar_estilos(df_n_sub), use_container_width=True, num_rows="dynamic", key="editor_nodos")
-        
-    with tab_sim2:
-        st.info("💡 Edita la columna **Exposición** o desactiva rutas (1 -> 0).")
-        cols_enlaces = [c for c in ['Activo', 'Nodo Origen', 'Nodo Destino', 'Tipo de Enlace', 'Exposición', 'Coste', 'Capacidad', 'Eficiencia'] if c in df_enlaces_original.columns]
-        if not cols_enlaces: cols_enlaces = df_enlaces_original.columns.tolist()
-        df_e_sub = df_enlaces_original[cols_enlaces]
-        df_enlaces_editado = st.data_editor(aplicar_estilos(df_e_sub), use_container_width=True, num_rows="dynamic", key="editor_enlaces")
-        
-    with tab_sim3: 
-        st.dataframe(aplicar_estilos(df_tipos), use_container_width=True)
-        
-    with tab_sim4:
-        st.markdown("**Sistema de escalas directa e inversa:** Esta tabla define cómo los atributos cualitativos se traducen matemáticamente para calcular el 'camino de menor resistencia' (fricción).")
-        if not df_pesos.empty:
-            st.dataframe(aplicar_estilos(df_pesos), use_container_width=True, hide_index=True)
-        else:
-            st.warning("No se ha encontrado la tabla 'tblPesos' en el archivo Excel.")
-
-    # Procesamiento interno
-    df_tipos = df_tipos.dropna(how='all')
-    df_nodos = df_nodos_editado.dropna(how='all')
-    df_enlaces = df_enlaces_editado.dropna(subset=['Nodo Origen', 'Nodo Destino'])
-
-    df_nodos['Activo'] = pd.to_numeric(df_nodos['Activo'], errors='coerce')
-    df_enlaces['Activo'] = pd.to_numeric(df_enlaces['Activo'], errors='coerce')
-
-    df_nodos = pd.merge(df_nodos, df_tipos[['Tipo', 'Capa']], on='Tipo', how='left')
-    df_nodos['Capa'] = pd.to_numeric(df_nodos['Capa'], errors='coerce').fillna(0)
-
-    nodos_activos = df_nodos[df_nodos['Activo'] == 1]
-    enlaces_activos = df_enlaces[df_enlaces['Activo'] == 1]
-
-    G = nx.DiGraph()
-    colores_capa = {'O': '#FF9999', 'I': '#99CCFF', 'G': '#FFCC99', 'D': '#99FF99'}
-
-    for _, row in nodos_activos.iterrows():
-        tipo_nodo = str(row['Tipo']).strip()
-        nombre_nodo = str(row.get('Nombre', ''))
-        G.add_node(str(row['NodoID']).strip(), label=str(row['NodoID']).strip() + (" - " + nombre_nodo if nombre_nodo else ""), color=colores_capa.get(tipo_nodo, '#CCCCCC'), level=int(row['Capa']), title=f"Tipo: {str(row.get('Descripción', tipo_nodo))}")
-
-    for _, row in enlaces_activos.iterrows():
-        origen = str(row['Nodo Origen']).strip()
-        destino = str(row['Nodo Destino']).strip()
-        if origen in G.nodes and destino in G.nodes:
-            exposicion = str(row.get('Exposición', '')).strip().lower()
-            if 'medio-alto' in exposicion: color_flecha = '#90EE90'
-            elif 'medio-bajo' in exposicion: color_flecha = '#FFB84D'
-            elif 'alto' in exposicion: color_flecha = '#008000'
-            elif 'medio' in exposicion: color_flecha = '#FFD700'
-            elif 'bajo' in exposicion: color_flecha = '#FF4444'
-            else: color_flecha = '#999999'
-            G.add_edge(origen, destino, color=color_flecha, title=f"Exposición: {row.get('Exposición', 'N/A')} | Coste: {row.get('Coste', 'N/A')}")
-
-    # ==========================================
-    # FASE 2: TOPOLOGÍA DE LA RED
-    # ==========================================
-    st.markdown("## 🌐 Fase 2: Topología Interactiva de la Red")
-    
-    if not nodos_activos.empty:
-        num_capas = pd.to_numeric(nodos_activos['Capa'], errors='coerce').nunique()
-        max_nodos_por_capa = pd.to_numeric(nodos_activos['Capa'], errors='coerce').value_counts().max()
+    ruta_por_defecto = buscar_workbook_por_defecto()
+    if ruta_por_defecto:
+        with open(ruta_por_defecto, "rb") as workbook_file:
+            workbook_bytes = workbook_file.read()
+        workbook_source = ruta_por_defecto
     else:
-        num_capas, max_nodos_por_capa = 1, 1
-        
-    sep_horizontal = max(int((1440 - 200) / (num_capas - 1 if num_capas > 1 else 1)), 250)
-    sep_vertical = max(int((650 - 120) / max_nodos_por_capa), 60)
+        st.info("💡 Sube un archivo Excel para comenzar, o deja en la carpeta del proyecto 'Diseño Red FT v5a.xlsm'.")
 
-    net = Network(height="650px", width="100%", directed=True, bgcolor="#ffffff", font_color="black")
-    net.from_nx(G)
-    net.set_options(f"""
-    {{
-      "layout": {{ "hierarchical": {{ "enabled": true, "direction": "LR", "sortMethod": "directed", "levelSeparation": {sep_horizontal}, "nodeDistance": {sep_vertical}, "treeSpacing": {sep_vertical}, "parentCentralization": true }} }},
-      "physics": {{ "enabled": false }},
-      "edges": {{ "smooth": {{ "type": "cubicBezier", "forceDirection": "horizontal", "roundness": 0.4 }}, "arrows": {{ "to": {{ "enabled": true, "scaleFactor": 0.5 }} }} }},
-      "nodes": {{ "font": {{ "size": 16, "face": "Arial" }} }},
-      "interaction": {{ "zoomView": true, "dragNodes": true, "hover": true }}
-    }}
-    """)
+if workbook_bytes is not None:
+    try:
+        modelo_base = cargar_modelo_desde_bytes(workbook_bytes)
+        meta_base = copiar_base(modelo_base)
+        meta_artifacts = build_artifacts(meta_base)
 
-    net.save_graph("mapa_interactivo.html")
-    with open("mapa_interactivo.html", 'r', encoding='utf-8') as f:
-        codigo_html = f.read()
+        st.markdown("## 🧭 Comparador de Topologías sobre la Meta-Red")
+        st.caption(f"Fuente cargada: {workbook_source}")
+        st.markdown(
+            "Cada topología se define encendiendo o apagando la columna `Activo` de Nodos y Enlaces. "
+            "La Meta-Red actúa como referencia fija y las demás pestañas recalculan toda la red desde Python."
+        )
 
-    gcol1, gcol2 = st.columns([4, 1])
-    with gcol1:
-        components.html(codigo_html, height=670)
-
-    with gcol2:
-        st.subheader("📊 Análisis")
-        st.metric("Total Nodos Activos", len(G.nodes))
-        st.metric("Total Rutas Activas", len(G.edges))
-        
-        st.markdown("### Mapa de Calor (Exposición)")
-        st.markdown("""
-        <div style="line-height: 2; font-size: 15px;">
-            🔴 <strong>Bajo:</strong> Canal opaco<br>
-            🟠 <strong>Medio-Bajo:</strong> Riesgo latente<br>
-            🟡 <strong>Medio:</strong> Neutro<br>
-            🟢 <strong>Medio-Alto / Alto:</strong> Canal expuesto (Fricción)
-        </div>
-        """, unsafe_allow_html=True)
-
-    # ==========================================
-    # FASE 3: MODELADO MATEMÁTICO
-    # ==========================================
-    st.markdown("## 🔢 Fase 3: Modelado Matemático (Teoría de Grafos)")
-    st.markdown("Traducción algebraica de la topología superior para el cálculo de equilibrio y cuellos de botella.")
-
-    with st.expander("Matrices Matemáticas del Sistema (Teoría de Grafos)", expanded=True):
-        tab_matriz1, tab_matriz2, tab_matriz3, tab_matriz4, tab_matriz5, tab_matriz6 = st.tabs([
-            "1️⃣ Adyacencia", 
-            "2️⃣ Costes", 
-            "3️⃣ Valor Operativo", 
-            "4️⃣ Trade-Off",
-            "5️⃣ Distancias",
-            "6️⃣ Métricas"
+        pestañas = st.tabs([
+            "Meta-Red",
+            *[scenario["label"] for scenario in SCENARIO_DEFINITIONS],
+            "Comparacion",
         ])
 
-        with tab_matriz1:
-            st.markdown("**Matriz Binaria:** Representa la existencia de rutas (1 = conectado). Es la base estructural para calcular la centralidad de grado.")
-            if len(G.nodes) > 0:
-                matriz_adyacencia = nx.to_pandas_adjacency(G, dtype=int)
-                st.dataframe(aplicar_estilo_matriz(matriz_adyacencia, 0), use_container_width=True)
-            else:
-                st.info("La red está vacía.")
+        resultados = {
+            "meta_red": {
+                "label": "Meta-Red",
+                "base": meta_base,
+                "artifacts": meta_artifacts,
+            }
+        }
 
-        with tab_matriz2:
-            st.markdown("**Matriz Ponderada de Costes:** Refleja la fricción, exposición o coste intrínseco de utilizar cada canal para el movimiento de fondos.")
-            if not df_pond_costes.empty:
-                df_pond_costes.set_index(df_pond_costes.columns[0], inplace=True)
-                st.dataframe(aplicar_estilo_matriz(df_pond_costes, 0), use_container_width=True)
-            else:
-                st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaCostes' en el archivo Excel.")
+        with pestañas[0]:
+            st.markdown("## Meta-Red")
+            meta_base, meta_artifacts = renderizar_pestana_topologia(
+                meta_base,
+                "meta_red",
+                "Escenario base del Excel. Se muestra como referencia fija para comparar el resto de topologías.",
+                editable=False,
+            )
+            resultados["meta_red"] = {
+                "label": "Meta-Red",
+                "base": meta_base,
+                "artifacts": meta_artifacts,
+            }
 
-        with tab_matriz3:
-            st.markdown("**Matriz Ponderada de Valor Operativo:** Refleja la capacidad, eficiencia o volumen del flujo que permite mover cada canal financiero.")
-            if not df_pond_valor.empty:
-                df_pond_valor.set_index(df_pond_valor.columns[0], inplace=True)
-                st.dataframe(aplicar_estilo_matriz(df_pond_valor, 0), use_container_width=True)
-            else:
-                st.warning("No se ha encontrado la tabla 'tblMatrizPonderadaValoroperativo' en el archivo Excel.")
-                
-        with tab_matriz4:
-            st.markdown("**Matriz Trade-Off:** Matriz combinada que evalúa la relación coste-beneficio para identificar los canales óptimos y las decisiones racionales de los actores (Equilibrio de Nash).")
-            if not df_tradeoff.empty:
-                df_tradeoff.set_index(df_tradeoff.columns[0], inplace=True)
-                st.dataframe(aplicar_estilo_matriz(df_tradeoff, 2), use_container_width=True)
-            else:
-                st.warning("No se ha encontrado la tabla 'tblMatrizTradeOff' en el archivo Excel.")
-                
-        with tab_matriz5:
-            st.markdown("**Matriz de Distancias:** Muestra las distancias o saltos mínimos entre los nodos de la red.")
-            if not df_distancias.empty:
-                df_distancias.set_index(df_distancias.columns[0], inplace=True)
-                st.dataframe(aplicar_estilo_matriz(df_distancias, 0), use_container_width=True)
-            else:
-                st.warning("No se ha encontrado la tabla 'tblMatrizDistancias' en el archivo Excel.")
-                
-        with tab_matriz6:
-            st.markdown("**Métricas:** Grado ponderado y otros indicadores de centralidad de los actores del modelo.")
-            if not df_metricas.empty:
-                df_metricas.set_index(df_metricas.columns[0], inplace=True)
-                st.dataframe(aplicar_estilo_matriz(df_metricas, 0), use_container_width=True)
-            else:
-                st.warning("No se ha encontrado la tabla 'tblGradoPonderado' en el archivo Excel.")
+        for index, scenario in enumerate(SCENARIO_DEFINITIONS, start=1):
+            with pestañas[index]:
+                st.markdown(f"## {scenario['label']}")
+                escenario_base, artifacts = renderizar_pestana_topologia(
+                    meta_base,
+                    scenario["id"],
+                    scenario["description"],
+                    editable=True,
+                )
+                resultados[scenario["id"]] = {
+                    "label": scenario["label"],
+                    "base": escenario_base,
+                    "artifacts": artifacts,
+                }
 
-    # ==========================================
-    # FASE 4: ASISTENTE DE INTELIGENCIA (VERTEX AI)
-    # ==========================================
-    st.markdown("## 🤖 Fase 4: Asistente de Inteligencia Artificial (Vertex AI)")
-    st.markdown("Consulta al modelo fundacional de Google Cloud sobre la topología de la red y el análisis de la matriz.")
+        with pestañas[-1]:
+            st.markdown("## Comparacion de metricas")
+            filas = [
+                construir_fila_comparacion(resultado["label"], resultado["base"], resultado["artifacts"])
+                for resultado in resultados.values()
+            ]
+            comparacion_df = pd.DataFrame(filas).set_index("Topologia")
+            st.dataframe(
+                comparacion_df.style.format(
+                    {
+                        "Nodos activos": "{:.0f}",
+                        "Enlaces activos": "{:.0f}",
+                        **{metric_name: "{:.4f}" for metric_name in METRIC_COLUMN_ORDER},
+                    }
+                ),
+                use_container_width=True,
+            )
 
-    if not VERTEX_AVAILABLE:
-        st.error("⚠️ Falta instalar la librería de Google Cloud. Para que funcione el chat, debes añadir `google-cloud-aiplatform` a tu archivo `requirements.txt` en GitHub.")
-    else:
-        try:
-            if "gcp_service_account_json" not in st.secrets:
-                st.warning("⚠️ El asistente está pausado. Faltan las credenciales en Streamlit Secrets.")
-                st.info("Añade un secreto llamado `gcp_service_account_json` en la configuración de tu app (Settings -> Secrets) pegando el contenido del archivo JSON de Google Cloud.")
-            else:
-                # El parámetro strict=False ignora los caracteres de control (\n) problemáticos
-                credenciales_json = json.loads(st.secrets["gcp_service_account_json"], strict=False)
-                credenciales_gcp = service_account.Credentials.from_service_account_info(credenciales_json)
-                
-                vertexai.init(project="aft-simulator", location="us-central1", credentials=credenciales_gcp)
-                # Utilizando siempre Gemini 2.5 Pro según las preferencias
-                model = GenerativeModel("gemini-2.5-pro")
+            if "Meta-Red" in comparacion_df.index:
+                referencia = comparacion_df.loc["Meta-Red", METRIC_COLUMN_ORDER]
+                delta_df = comparacion_df[METRIC_COLUMN_ORDER].subtract(referencia, axis=1)
+                delta_df = delta_df.rename_axis("Topologia")
+                st.markdown("### Delta respecto a la Meta-Red")
+                st.dataframe(delta_df.style.format("{:+.4f}"), use_container_width=True)
 
-                user_query = st.chat_input("Pregunta a Gemini 2.5 Pro sobre la red de financiación...")
+            metrica_chart = st.selectbox(
+                "Metrica a visualizar",
+                METRIC_COLUMN_ORDER,
+                key="metrica_comparacion",
+            )
+            st.bar_chart(comparacion_df[[metrica_chart]], use_container_width=True)
 
-                if user_query:
-                    st.chat_message("user").write(user_query)
+        if VERTEX_AVAILABLE:
+            st.markdown("## 🤖 Asistente de Inteligencia Artificial (Vertex AI)")
+            st.markdown("Consulta a Gemini sobre el escenario base y las diferencias entre topologías.")
+            try:
+                if "gcp_service_account_json" not in st.secrets:
+                    st.warning("⚠️ El asistente está pausado. Faltan las credenciales en Streamlit Secrets.")
+                else:
+                    credenciales_json = json.loads(st.secrets["gcp_service_account_json"], strict=False)
+                    credenciales_gcp = service_account.Credentials.from_service_account_info(credenciales_json)
+                    vertexai.init(project="aft-simulator", location="us-central1", credentials=credenciales_gcp)
+                    model = GenerativeModel("gemini-2.5-pro")
 
-                    contexto_red = f"""
-                    Eres un asistente de inteligencia financiera. Te presento el estado actual de la simulación de red:
-                    - Número de actores activos: {len(G.nodes)}
-                    - Número de rutas financieras activas: {len(G.edges)}
-                    
-                    Pregunta del analista: {user_query}
-                    """
+                    user_query = st.chat_input("Pregunta a Gemini 2.5 Pro sobre la Meta-Red o la comparativa...")
+                    if user_query:
+                        st.chat_message("user").write(user_query)
+                        comparacion_texto = comparacion_df.to_string()
+                        contexto_red = f"""
+                        Eres un asistente de inteligencia financiera.
+                        Escenario de referencia: Meta-Red.
+                        Comparativa actual de topologías:
+                        {comparacion_texto}
 
-                    with st.chat_message("assistant"):
-                        with st.spinner("Analizando la topología con Gemini 2.5 Pro en Google Cloud..."):
-                            response = model.generate_content(contexto_red)
-                            st.write(response.text)
-
-        except json.JSONDecodeError as e:
-            st.error(f"❌ Error leyendo el archivo JSON de Streamlit Secrets.")
-            st.info("Asegúrate de que en Settings -> Secrets tienes puesto el JSON envuelto en tres comillas SIMPLES: '''")
-            st.code(str(e))
-        except Exception as e:
-            st.error("❌ Ha ocurrido un error al conectar con Vertex AI.")
-            with st.expander("Ver detalles técnicos del error"):
+                        Pregunta del analista: {user_query}
+                        """
+                        with st.chat_message("assistant"):
+                            with st.spinner("Analizando la comparativa con Gemini 2.5 Pro en Google Cloud..."):
+                                response = model.generate_content(contexto_red)
+                                st.write(response.text)
+            except json.JSONDecodeError as e:
+                st.error("❌ Error leyendo el archivo JSON de Streamlit Secrets.")
                 st.code(str(e))
+            except Exception as e:
+                st.error("❌ Ha ocurrido un error al conectar con Vertex AI.")
+                with st.expander("Ver detalles técnicos del error"):
+                    st.code(str(e))
+
+    except WorkbookSchemaError as exc:
+        st.error(f"❌ El workbook no cumple el esquema esperado: {exc}")
+    except KeyError as exc:
+        st.error(f"❌ Falta una tabla requerida en el Excel: {exc}")
+    except Exception as exc:
+        st.error("❌ No se pudo cargar el modelo de la Meta-Red.")
+        with st.expander("Ver detalles técnicos del error"):
+            st.code(str(exc))
